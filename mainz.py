@@ -1,6 +1,6 @@
 print(12 + 12)
 
-print("idk whats going on")
+print("removed this ")
 
 print("HELLO WORLD !!! How are you mates")
 #Hello
