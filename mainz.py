@@ -4,14 +4,7 @@ print("idk whats going on")
 
 # juanTEstTEststtt
 
-#Hello
-#testing
-#teach me how to doggy
-# Luis Schaad
-#YOU SHOULD SEE THIS IF IT WORKED
 
-#Juan Testing
-#hello
 
 
 # Ali :)
