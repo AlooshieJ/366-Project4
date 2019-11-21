@@ -2,7 +2,8 @@ print(12 + 12)
 #I want to be SMASH KING
 print("idk whats going on")
 
-print("HELLO WORLD !!! How are you mates")
+# DELETED A PRINT STATEMENT
+
 #Hello
 #testing
 #teach me how to doggy
