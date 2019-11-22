@@ -1,5 +1,4 @@
-if(TRUE){
-print("hello")
-}
+while(1):
+    print("hello")
+    print("wtf is this")
 
-# HEY JUAN PLEASE FIX MY CODE
