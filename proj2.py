@@ -65,6 +65,30 @@ def asm_to_bin(asm, label_name, label_index):
             f.write(str('001001') + str(rs) + str(rt) + str(imm) + '\n')
             line_pos += 1
 
+        elif line[:4] == "addu" : # addu rd , rs, rt ... instruction support
+            line = line.replace("addu","")
+            line = line.split(',')
+
+            rd = format(int(line[0]), '05b')
+            rs = format(int(line[1]), '05b')
+            rt = format(int(line[2]), '05b')
+            bin_out = "000000" + rs + rt + rd + "00000100001" + '\n'
+            f.write(bin_out)
+            line_pos += 1
+
+        elif line[:3] == "sub": # sub rd, rs, rt
+
+            line = line.replace("sub","")
+            line = line.split(',')
+
+            rd = format(int(line[0]), '05b')
+            rs = format(int(line[1]), '05b')
+            rt = format(int(line[2]), '05b')
+            bin_out = "000000" + rs + rt + rd + "00000100010" + "\n"
+            f.write(bin_out)
+            line_pos += 1
+
+
         elif line[0:4] == "xori":  # xori rt, rs, imm
             line = line.replace("xori", "")
             line = line.split(",")
@@ -581,6 +605,26 @@ def add(instr):
     reg_file.update_pc()
 
 
+def sub (instr): # rd = rs - rt
+    print(f"name: {instr.name} rs = {instr.rs} rd = {instr.rd} rt = {instr.rt} ")
+
+    rs = reg_file.read(instr.rs)
+    rt = reg_file.read(instr.rt)
+
+    reg_file.write(instr.rd , rs - rt)
+
+    reg_file.update_pc()
+
+
+def addu(instr): # rd = rs + rt;
+    print(f"name: {instr.name} rs = {instr.rs} rd = {instr.rd} rt = {instr.rt} ")
+
+    rs = reg_file.read(instr.rs)
+    rt = reg_file.read(instr.rt)
+    reg_file.write(instr.rd , rs + rt)
+    reg_file.update_pc()
+
+
 def OR(instr):
     # or rd, rs, rt
     # print(instr.binary_S)
@@ -968,6 +1012,8 @@ r_type = {
     '101011': (sltu, 'sltu'),
     '100100': (AND, 'and'),
     '101010': (slt, 'slt'),
+    '100001': (addu,'addu'), # not complete
+    '100010': (sub,'sub'),
     '111111': (spec, 'spec')  # special instruction added for MIPS-PLUS
 }
 # moved ori into its own register b/c it caused some problems
@@ -1031,7 +1077,7 @@ def printallmem():
 
 def main():
     # input asm file
-    read_file = input("select file: (testcase.asm), (hash-default.asm), (hash-plus.asm)")
+    read_file = input("input file name: ")
     print(read_file)
 
     h = open(read_file, 'r')
