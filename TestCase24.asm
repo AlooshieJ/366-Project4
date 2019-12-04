@@ -1,23 +1,30 @@
-ori $8, $0, 24
-addi $9, $0, 0x40
+ori $8, $0, 2
+addi $9, $0, 0x60
 sw_loop:
 sw $8, 0x2000($9)
 addi $9, $9, -4
 beq $9, $0, sw_done
-sll $10, $8, 24
-addu $10, $10, $8
+addu $8, $8, $8
 sub $8, $0, $8
-xor $8, $10, $8
+addi $8, $8, -3
 beq $0, $0, sw_loop
 sw_done:
-addi $10, $0, 0x40
-addu $12, $0, $0
-lw_loop:
-lw $8, 0x2000($9)
-slt $11, $8, $0
-bne $11, $0, skip
-addi $12, $12, 1
-skip:
+addi $8, $0, 0x2070
+addi $10, $0, 0x2060
+addi $9, $0, 0x2000
+outer_loop:
+addi $14, $0, 5
+lw $11, 0($9)
+inner_loop:
 addi $9, $9, 4
-bne $9, $10, lw_loop
-sw $12, 0x2000($0)
+lw $12, 0($9)
+slt $13, $12, $11
+beq $13, $0, skip
+addu $11, $0, $12
+skip:
+addi $14, $14, -1
+bne $14, $0, inner_loop
+sw $11, 0($8)
+addi $8, $8, 4
+slt $13, $9, $10
+bne $13, $0, outer_loop 

@@ -20,6 +20,12 @@ def printList(list):
             print(f" ${i} = {list[i]}")
         i+= 1
 
+def listPrint(list):
+    i = 0
+    while(i < len(list)):
+        print(f"{i} = {list[i]}")
+        i+= 1
+
 def shiftLeft(binary, shifts):
     i=0
     while(i < shifts):
@@ -64,21 +70,26 @@ def sim(program, deBug):
     DIC = 0               # Dynamic Instr Count
     skip = False
     skipCount = 0
-
+    printDicInput = "n"
 
     while(not(finished)):
-        if PC == len(program) - 4: 
+        if PC == len(program) :
             finished = True
+            break
         fetch = program[PC]
+
+        print(f"Fetch = 0x{format(int(fetch,2), '08x')} @ dic = {DIC} | fetch 0:6 ={fetch[0:6]} | PC= {PC}")
+        print(f"register ${int(fetch[6:11],2)} = {register[int(fetch[6:11],2)]} \n imm = {-(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)}")
+
         DIC += 1
         register[0] = 0 # keep $0 = 0
-        #print(hex(int(fetch,2)), PC)
 
         if fetch[0:6] == '001000': # ADDI
             PC += 4
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
             imm = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
+            print(f"register ${s} = {register[s]} \n imm = {imm}")
             register[t] = register[s] + imm
 
 
@@ -89,39 +100,17 @@ def sim(program, deBug):
             t = int(fetch[11:16],2)
             d = int(fetch[16:21],2)
             temp = 0
-            #register[d] = register[s] + register[t]
-            #print(f"registser {s} = {register[s]}")
             s = int(decToBinSig(register[s], 32), 2)
-            print(f"s = {s}")
             t = int(decToBinSig(register[t], 32), 2)
-            print(f"t = {t}")
             temp = s + t
-            print(f"temp = {temp}")
-            print(f"temp binary = {decToBinSig(temp,minBitsSig(temp))} and length = {len(decToBinSig(temp,minBitsSig(temp)))}")
             temp = decToBinSig(temp,minBitsSig(temp))
-            '''print(temp)
-            print(f"initial length {len(temp)}")
-            print(32 - len(temp))
-            if(len(temp)<32):
-                w = 0
-                while(w < (32 - len(temp)) ):
-                    temp = "0" + temp
-                    print(f"current length: {len(temp)} w = {w}")
-                    w += 1
-                    
-            print(f"length: {len(temp)}")
-            temp = temp[(len(temp) -32):]
-            print(temp)
-            print(len(temp))'''
             if(len(temp) > 32):
                 temp = temp[(len(temp)-32):]
-                print(f"shortened temp = {temp}")
             if(temp[0]== "1"):
                 temp = twosComplementBin(temp)
                 temp = int(temp, 2) * -1
             else:
                 temp = int(temp,2)
-            print(temp)
             register[d] = temp
 
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000100000': # ADD
@@ -137,13 +126,7 @@ def sim(program, deBug):
             t = int(fetch[11:16],2)
             d = int(fetch[16:21],2)
             register[d] = register[s] - register[t]
-            
-        # elif fetch[0:6] == '000000' and fetch[21:32] == '00000100010': # SUB
-        #     PC += 4
-        #     s = int(fetch[6:11],2)
-        #     t = int(fetch[11:16],2)
-        #     d = int(fetch[16:21],2)
-        #     register[d] = register[s] - register[t]
+
 
         elif fetch[0:6] == '000000' and fetch[26:32] == '000010': # SRL
             PC += 4
@@ -158,19 +141,13 @@ def sim(program, deBug):
             d = int(fetch[16:21],2)
             h = int(fetch[21:26],2)
             t = decToBinSig(register[t],32)
-            #print(format(int(t,2), "08x"))
-            print(register[h])
             t = shiftLeft(t, h)
-           # print(t)
-           # print(t[0])
             if(t[0] == "1"):
                 t = twosComplementBin(t)
                 t = int(t,2) * -1
             else:
                 t = int(t, 2)
-                #t = register[t] << register[h]
             register[d] = t
-            #register[d] = register[t] << h
             
         elif fetch[0:6] == '000100':  # BEQ
             PC += 4
@@ -188,7 +165,8 @@ def sim(program, deBug):
             imm = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
             # Compare the registers and decide if jumping or not
             if register[s] != register[t]:
-                PC += imm*4               
+                PC += imm*4
+            print(f"THIS IS PC AFTER BNE {PC}")
         
         elif fetch[0:6] == '001101':   # ORI
             PC += 4
@@ -210,7 +188,6 @@ def sim(program, deBug):
             t = int(fetch[11:16],2)
             offset = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
             offset = offset + register[s]-0x2000
-            # mem[offset] = register[t]
             if (offset % 4) == 0:
                 mem[offset+3] = (register[t] >> 24) & 0x000000ff  # +3
                 mem[offset+2] = (register[t] >> 16) & 0x000000ff # +2
@@ -223,7 +200,6 @@ def sim(program, deBug):
             t = int(fetch[11:16],2)
             offset = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
             offset = offset + register[s]-0x2000
-           # print("stored: " + hex(register[t]) + " in memory at: " + hex(offset + 0x2000))
             mem[offset] = register[t]
 
         elif fetch[0:6] == '100000':  # LB
@@ -245,10 +221,7 @@ def sim(program, deBug):
             memoffset2 = format((mem[offset+2]), '02x')
             memoffset3 = format((mem[offset+3]), '02x')
             loaded = memoffset3 + memoffset2 + memoffset1 + memoffset0
-            print(f"this is offset = {offset}")
-            print(f"this is loaded in hex = 0x{loaded}")
             loaded = format(int(loaded, 16), "0b")
-            print(f"this is loaded in binary = {loaded}, length = {len(loaded)} ")
 
             if(len(loaded) != 32 ):
 
@@ -260,7 +233,6 @@ def sim(program, deBug):
                 loaded = int(loaded, 2) * -1
             else:
                 loaded = int(loaded,2)
-            print(f"this is loaded = {loaded}")
             register[t] = loaded
 
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000101010': # SLT
@@ -339,7 +311,21 @@ def sim(program, deBug):
             bits32 = hex((mem[i+3]<<24) + (mem[i+2]<<16) + (mem[i+1]<<8) + (mem[i]))
             bit32Mem.append(("%08X" % int(bits32, 16)))
 
+        if(printDicInput == "y" and (skip == True)):
+            print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
+            print('Dynamic Instr Count ', DIC)
+            print('Registers $8 - $23')
+            printList(register)
+            print("Address Value(+0)\tValue(+4)\tValue(+8)\tValue(+c)\tValue(+10)\tValue(+14)\tValue(+18)\tValue(1c)")
+            for z in range(0,9):   # j is a row of 0x20 addresses in Mars (can be from 0 to 32 - but need at least 9 to show all addresses for project1)
+                print(hex(z*32+0x2000), end = "\t")
+                for y in range(0,8):        # i is the column in MARS such that: address + value(i*4)
+                    print ("0x" +bit32Mem[z*8+y], end="\t")
+                print("\n", end = "")
+            print('')
+
         if(skip == False):
+            printDicInput = "n"
             if(deBug == "y"):
                 print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
                 print('Dynamic Instr Count ', DIC)
@@ -355,23 +341,15 @@ def sim(program, deBug):
 
                 userInput = input("Want to skip to certain dic? type 'n' for NO, or type dic number you wish to skip to\n")
                 if(userInput == "n"):
-                    userInput = input("Next Step?, type y for yes \n")
+                    userInput = input("Next Step? type y for yes \n")
                     if(userInput == "y"):
-                        '''print('Registers $8 - $23 ', register[8:23])
-                        print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
-                        print('Dynamic Instr Count ', DIC)
-                        print("Address Value(+0)\tValue(+4)\tValue(+8)\tValue(+c)\tValue(+10)\tValue(+14)\tValue(+18)\tValue(1c)")
-                        for z in range(0,9):   # j is a row of 0x20 addresses in Mars (can be from 0 to 32 - but need at least 9 to show all addresses for project1)
-                            print(hex(z*32+0x2000), end = "\t")
-                            for y in range(0,8):        # i is the column in MARS such that: address + value(i*4)
-                                print ("0x" +bit32Mem[z*8+y], end="\t")
-                            print("\n", end = "")'''
                         deBug = "y"
                     else:
                         deBug = "n"
                 else:
                     skip = True
                     skipCount = int(userInput)
+                    printDicInput = input("Want to print along the way? 'y' for yes\n")
 
         if(DIC == skipCount - 1):
             skip = False
@@ -383,9 +361,10 @@ def sim(program, deBug):
 
     # Finished simulations. Let's print out some stats
     print('***Simulation finished***')
-    print('Registers $8 - $23 ', register[8:24])
     print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
     print('Dynamic Instr Count ', DIC)
+    print('Registers $8 - $23')
+    printList(register)
     print('Memory contents 0x2000 - 0x2100 ', mem[0:256])
     print("")
 
@@ -455,6 +434,7 @@ def main():
                 line = line + decimal
 
 
+
             #-----only adding valid instructions and Labels------#
         if(line[0:5] == "addiu"): validInstructions.append(line)   # ADDIU
         elif(line[0:4] == "addi"): validInstructions.append(line)   # ADDI
@@ -502,6 +482,7 @@ def main():
         i +=1
 
 
+
     #-----making list of pure valid binary instructions at every 4th index------#
     binaryInstructions = [0] * (len(validInstructions) * 4)
 
@@ -510,7 +491,7 @@ def main():
     i = 0
     while(i < len(validInstructions)):
         line = validInstructions[i]
-
+        print(f" THIS IS LIIINNEEEE ========= {line} and i = {i}")
         if(line[0:5] == "addiu"): # ADDIU
             line = line.replace("addiu","")
             line = line.split(",")
@@ -898,7 +879,6 @@ def main():
 
     # We SHALL start the simulation!
     deBug = input("Want to enter debug mode, to step through every step? type y for yes \n")
-
     sim(binaryInstructions, deBug)
 
 
