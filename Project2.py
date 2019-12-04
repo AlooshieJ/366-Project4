@@ -1,6 +1,57 @@
+from math import *
 #-----allows raw input------#
 try: input = raw_input
 except NameError: pass
+#--------extra funcs------#
+def minBitsSig(dec):
+    if(dec == 0 or dec == -1 ):
+        numBits = 1
+    elif(dec < 0):
+        dec = dec + 1
+        numBits = int(log(abs(dec), 2) + 2 )
+    else:
+        numBits = int(log(abs(dec), 2) + 2 )
+    return numBits
+
+def printList(list):
+    i = 0
+    while(i < len(list)):
+        if(i>= 8 and i<= 23):
+            print(f" ${i} = {list[i]}")
+        i+= 1
+
+def shiftLeft(binary, shifts):
+    i=0
+    while(i < shifts):
+        binary = binary + "0"
+        binary= binary[1:]
+        i += 1
+    return binary
+
+def twosComplementBin(binary):
+    if(binary[0] == "1"):
+        length = len(binary)
+        binary = (int(binary,2) ^ int(("1"*length), 2)) + 1
+        length = str(length)
+        binary = format(binary, "0{}b".format(length))
+    return binary
+
+def decToBinSig(dec, numBits):
+    if(dec < 0 ):
+        if(numBits < minBitsSig(dec)):
+            return "Not enough bits"
+        dec = dec + (2 ** numBits)
+        binary = format(dec, "0b")
+
+    elif(numBits < minBitsSig(dec)):
+            return "Not enough bits"
+    else:
+        binary = format(dec, "0{}b".format(numBits))
+
+    return binary
+
+
+
 
 #-----SIM-----#
 def sim(program, deBug):
@@ -11,6 +62,8 @@ def sim(program, deBug):
     register = [0] * 32   # Let's initialize 32 empty registers
     mem = [0] * 0x1000     # Let's initialize 0x3000 or 12288 spaces in memory. I know this is inefficient...
     DIC = 0               # Dynamic Instr Count
+    skip = False
+    skipCount = 0
 
 
     while(not(finished)):
@@ -28,26 +81,96 @@ def sim(program, deBug):
             imm = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
             register[t] = register[s] + imm
 
+
+
+        elif fetch[0:6] == '000000' and fetch[21:32] == '00000100001': # ADDU
+            PC += 4
+            s = int(fetch[6:11],2)
+            t = int(fetch[11:16],2)
+            d = int(fetch[16:21],2)
+            temp = 0
+            #register[d] = register[s] + register[t]
+            #print(f"registser {s} = {register[s]}")
+            s = int(decToBinSig(register[s], 32), 2)
+            print(f"s = {s}")
+            t = int(decToBinSig(register[t], 32), 2)
+            print(f"t = {t}")
+            temp = s + t
+            print(f"temp = {temp}")
+            print(f"temp binary = {decToBinSig(temp,minBitsSig(temp))} and length = {len(decToBinSig(temp,minBitsSig(temp)))}")
+            temp = decToBinSig(temp,minBitsSig(temp))
+            '''print(temp)
+            print(f"initial length {len(temp)}")
+            print(32 - len(temp))
+            if(len(temp)<32):
+                w = 0
+                while(w < (32 - len(temp)) ):
+                    temp = "0" + temp
+                    print(f"current length: {len(temp)} w = {w}")
+                    w += 1
+                    
+            print(f"length: {len(temp)}")
+            temp = temp[(len(temp) -32):]
+            print(temp)
+            print(len(temp))'''
+            if(len(temp) > 32):
+                temp = temp[(len(temp)-32):]
+                print(f"shortened temp = {temp}")
+            if(temp[0]== "1"):
+                temp = twosComplementBin(temp)
+                temp = int(temp, 2) * -1
+            else:
+                temp = int(temp,2)
+            print(temp)
+            register[d] = temp
+
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000100000': # ADD
             PC += 4
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
             d = int(fetch[16:21],2)
-            register[d] = register[s] + register[t]            
-            
+            register[d] = register[s] + register[t]
+
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000100010': # SUB
             PC += 4
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
             d = int(fetch[16:21],2)
             register[d] = register[s] - register[t]
+            
+        # elif fetch[0:6] == '000000' and fetch[21:32] == '00000100010': # SUB
+        #     PC += 4
+        #     s = int(fetch[6:11],2)
+        #     t = int(fetch[11:16],2)
+        #     d = int(fetch[16:21],2)
+        #     register[d] = register[s] - register[t]
 
         elif fetch[0:6] == '000000' and fetch[26:32] == '000010': # SRL
             PC += 4
             t = int(fetch[11:16],2)
             d = int(fetch[16:21],2)
             h = int(fetch[21:26],2)
-            register[d] = register[t] >> h    
+            register[d] = register[t] >> h
+
+        elif fetch[0:6] == '000000' and fetch[26:32] == '000000': # SLL
+            PC += 4
+            t = int(fetch[11:16],2)
+            d = int(fetch[16:21],2)
+            h = int(fetch[21:26],2)
+            t = decToBinSig(register[t],32)
+            #print(format(int(t,2), "08x"))
+            print(register[h])
+            t = shiftLeft(t, h)
+           # print(t)
+           # print(t[0])
+            if(t[0] == "1"):
+                t = twosComplementBin(t)
+                t = int(t,2) * -1
+            else:
+                t = int(t, 2)
+                #t = register[t] << register[h]
+            register[d] = t
+            #register[d] = register[t] << h
             
         elif fetch[0:6] == '000100':  # BEQ
             PC += 4
@@ -165,6 +288,7 @@ def sim(program, deBug):
             t = int(fetch[11:16],2)
             d = int(fetch[16:21],2)
             register[d] = register[s] ^ register[t]
+            #print(register[d])
 
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000010000': # MFHI
             PC += 4
@@ -186,20 +310,42 @@ def sim(program, deBug):
             bits32 = hex((mem[i+3]<<24) + (mem[i+2]<<16) + (mem[i+1]<<8) + (mem[i]))
             bit32Mem.append(("%08X" % int(bits32, 16)))
 
-        if(deBug == "y"):
-            userInput = input("Next Step?, type y for yes \n")
-            if(userInput == "y"):
-                print('Registers $8 - $23 ', register[8:23])
+        if(skip == False):
+            if(deBug == "y"):
                 print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
                 print('Dynamic Instr Count ', DIC)
+                print('Registers $8 - $23')
+                printList(register)
                 print("Address Value(+0)\tValue(+4)\tValue(+8)\tValue(+c)\tValue(+10)\tValue(+14)\tValue(+18)\tValue(1c)")
                 for z in range(0,9):   # j is a row of 0x20 addresses in Mars (can be from 0 to 32 - but need at least 9 to show all addresses for project1)
                     print(hex(z*32+0x2000), end = "\t")
                     for y in range(0,8):        # i is the column in MARS such that: address + value(i*4)
                         print ("0x" +bit32Mem[z*8+y], end="\t")
                     print("\n", end = "")
-            else:
-                deBug = "n"
+                print('')
+
+                userInput = input("Want to skip to certain dic? type 'n' for NO, or type dic number you wish to skip to\n")
+                if(userInput == "n"):
+                    userInput = input("Next Step?, type y for yes \n")
+                    if(userInput == "y"):
+                        '''print('Registers $8 - $23 ', register[8:23])
+                        print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
+                        print('Dynamic Instr Count ', DIC)
+                        print("Address Value(+0)\tValue(+4)\tValue(+8)\tValue(+c)\tValue(+10)\tValue(+14)\tValue(+18)\tValue(1c)")
+                        for z in range(0,9):   # j is a row of 0x20 addresses in Mars (can be from 0 to 32 - but need at least 9 to show all addresses for project1)
+                            print(hex(z*32+0x2000), end = "\t")
+                            for y in range(0,8):        # i is the column in MARS such that: address + value(i*4)
+                                print ("0x" +bit32Mem[z*8+y], end="\t")
+                            print("\n", end = "")'''
+                        deBug = "y"
+                    else:
+                        deBug = "n"
+                else:
+                    skip = True
+                    skipCount = int(userInput)
+
+        if(DIC == skipCount - 1):
+            skip = False
     print("")
 
 
@@ -208,7 +354,7 @@ def sim(program, deBug):
 
     # Finished simulations. Let's print out some stats
     print('***Simulation finished***')
-    print('Registers $8 - $23 ', register[8:23])
+    print('Registers $8 - $23 ', register[8:24])
     print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
     print('Dynamic Instr Count ', DIC)
     print('Memory contents 0x2000 - 0x2100 ', mem[0:256])
@@ -243,8 +389,8 @@ def main():
 
 
     #----opening files----#
-    f = open("mc.txt","w+")
-    h = open("DefaultHash.asm","r")                 # INPUT FILE NAME WITH ASM CODE HERE
+    f = open("output.txt","w+")
+    h = open("TestCase24.asm","r")                 # INPUT FILE NAME WITH ASM CODE HERE
     #h = open("Hash-MIPS-plus.asm","r")
     #h = open("TestCase.asm","r")
     asm = h.readlines()
@@ -283,12 +429,15 @@ def main():
             #-----only adding valid instructions and Labels------#
         if(line[0:5] == "addiu"): validInstructions.append(line)   # ADDIU
         elif(line[0:4] == "addi"): validInstructions.append(line)   # ADDI
+        elif(line[0:4] == "addu"): validInstructions.append(line)   # ADDU
         elif(line[0:3] == "add"): validInstructions.append(line)  # ADD
+        elif(line[0:3] == "sub"): validInstructions.append(line)  # SUB
         elif(line[0:5] == "multu"): validInstructions.append(line)  # MULTU
         elif(line[0:4] == "mult"): validInstructions.append(line) # MULT
         elif(line[0:4] == "sltu"): validInstructions.append(line)   # SLTU
         elif(line[0:3] == "slt"): validInstructions.append(line)  # SLT
         elif(line[0:3] == "srl"): validInstructions.append(line)  # SRL
+        elif(line[0:3] == "sll"): validInstructions.append(line)  # SLL
         elif(line[0:2] == "sw"): validInstructions.append(line)  # SW
         elif(line[0:2] == "lw"): validInstructions.append(line)   # LW
         elif(line[0:2] == "lb"): validInstructions.append(line) # LB
@@ -307,7 +456,6 @@ def main():
         elif(line.find(":") != -1): validInstructions.append(line)
 
         i+=1
-
 
 
 
@@ -359,6 +507,19 @@ def main():
             f.write("0x" + format(int(binary,2), "08x") + "\n")
 
 
+        elif(line[0:4] == "addu"): # ADDU
+            line = line.replace("addu","")
+            line = line.split(",")
+            rd = format(int(line[0]),'05b')
+            rs = format(int(line[1]),'05b')
+            rt = format(int(line[2]),'05b')
+            binary = str('000000') + str(rs) + str(rt) + str(rd) + str('00000100001')
+            #print(binary)
+            #print(binaryInstructions)
+            binaryInstructions[i * 4] = binary
+            #f.write(binary + "\n")
+            f.write("0x" + format(int(binary,2), "08x") + "\n")
+
 
         elif(line[0:3] == "add"): # ADD
             line = line.replace("add","")
@@ -367,6 +528,17 @@ def main():
             rs = format(int(line[1]),'05b')
             rt = format(int(line[2]),'05b')
             binary = str('000000') + str(rs) + str(rt) + str(rd) + str('00000100000')
+            binaryInstructions[i * 4] = binary
+            #f.write(binary + "\n")
+            f.write("0x" + format(int(binary,2), "08x") + "\n")
+
+        elif(line[0:3] == "sub"): # SUB
+            line = line.replace("sub","")
+            line = line.split(",")
+            rd = format(int(line[0]),'05b')
+            rs = format(int(line[1]),'05b')
+            rt = format(int(line[2]),'05b')
+            binary = str('000000') + str(rs) + str(rt) + str(rd) + str('00000100010')
             binaryInstructions[i * 4] = binary
             #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x") + "\n")
@@ -440,6 +612,17 @@ def main():
             rs = format(int(line[1]),'05b')
             rt = format(int(line[0]),'05b')
             binary = str('00000000000') + str(rs) + str(rt) + str(imm) + str('000010')
+            binaryInstructions[i * 4] = binary
+            #f.write(binary + "\n")
+            f.write("0x" + format(int(binary,2), "08x")+ "\n")
+
+        elif(line[0:3] == "sll"): # SLL
+            line = line.replace("sll","")
+            line = line.split(",")
+            imm = format(int(line[2]),'05b') if (int(line[2]) > 0) else format(65536 + int(line[2]),'05b')
+            rs = format(int(line[1]),'05b')
+            rt = format(int(line[0]),'05b')
+            binary = str('00000000000') + str(rs) + str(rt) + str(imm) + str('000000')
             binaryInstructions[i * 4] = binary
             #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x")+ "\n")
