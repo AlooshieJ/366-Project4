@@ -1,3 +1,9 @@
+from math import *
+
+
+def bin_digits(n, bits):
+    s = bin(n & int("1"*bits, 2))[2:]
+    return ("{0:0>%s}" % bits).format(s)
 
 class mem:
     def __init__(self, address, b3, b2, b1, b0):
@@ -46,7 +52,11 @@ class Block:
         self.data  = []
 
         for i in range(size):
-            self.data.append('$') # read from mem
+            self.data.append('$') # read from mem each index is a byte
+
+   # def write_to_block(self,Memory):
+
+    #    self.data# findd the correct addr
 
 
 class CacheMoney:
@@ -55,20 +65,29 @@ class CacheMoney:
 
         self.blk_size = 16 # input
         self.blk_offset = 0
-        self.blks = []
+        # self.blks = []
         self.totalblks = total_blocks
         self.memspace = 0 # ???
         self.type = option
+        self.setNum = 0
         self.set = []
         self.way = []
+        self.Hit = 0
+        self.Miss = 0
+        self.leastUsed = [] # list size of total blocks, should incorporate a ways check too
 
 
         if self.type == 'DM':
             print(f"Creating Direct Map Cash | total blocks: {self.totalblks}  block size: {self.blk_size}")
-            for i in range(self.totalblks): # creating 4 blocks
-                self.blks.append(Block(self.blk_size ))
 
-            self.set.append(self.blks)
+            self.blk_offset = int(log(self.blk_size,2))
+            self.setNum =     int(log(self.totalblks,2))
+            self.tagsize = 32 - (self.setNum + self.blk_offset)
+            print(f"tag size: {self.tagsize} set size: {self.setNum} in blk off: {self.blk_offset}")
+
+            for i in range(self.totalblks): # creating 4 blocks
+                self.set.append(Block(self.blk_size ))
+
 
         # if type == 'SA':
 
@@ -77,13 +96,48 @@ class CacheMoney:
 
             for i in range(self.totalblks): # these are sets..
 
-                print("set: ",i, cache.blks[i].data, end=" ")
-                print(f"tag : {cache.blks[i].tag} Valid: {cache.blks[i].valid} ")
-            print(cache.blks)
+                print(f"set: {bin_digits(i,self.setNum)} {cache.set[i].data}", end=" ")
+                print(f"tag : {cache.set[i].tag} Valid: {cache.set[i].valid} ")
+        print()
 
             # print("printing set:")
             # for i in self.set:
             #     print( i)
+# addr[-self.blk_offset:]
+    def write_cache(self,addr):
+
+        if self.type == 'DM':
+            #addr = addr + 0x2000
+            addr =  bin_digits(addr,32)
+            tag = addr[:self.tagsize]
+            set = addr[-self.setNum - self.blk_offset: -self.blk_offset]
+            off = addr[-self.blk_offset:]
+            print(f"writing to addr: {addr} {hex(int(addr,2))} \n tag: {tag} set: {set} off: {off} ")
+            # need a range for addr
+
+            if self.set[int(set,2)].valid == 0: # cold miss
+                self.Miss +=1
+
+
+                print(f"cold miss with addr : {addr} \n in blk info for set {set}:   tag : {self.set[int(set,2)].tag}  Valid : {self.set[int(set,2)].valid}")
+                self.set[int(set, 2)].tag = tag
+                self.set[int(set, 2)].valid = 1
+                print(f"loading blk fom Mem  {11111}  into set {set}  ")
+            else: # valid bit, check tag
+                if self.set[int(set,2)].tag == tag: # valid tag , hit load write blk
+                    self.Hit += 1
+                    print(f"Hit with addr: {addr}\n in blk info for set {set}: tag : {self.set[int(set,2)].tag} Valid : {self.set[int(set,2)].valid}")
+
+
+                else: # not the same tag , overwite set
+                    self.Miss += 1
+                    print(f"Miss with addr {addr}\n in blk info for set {set}: tag: {self.set[int(set,2)].tag} Valid: {self.set[int(set,2)].valid}")
+                    print(f"access tag: {tag} updating blk with Memory FIX THIS!!!!")
+                    self.set[int(set, 2)].tag = tag
+
+            for i in range(self.totalblks):
+                print(f" set: {i}  tag  : {self.set[i].tag} valid: {self.set[i].valid}")
+            print(f"Hits: {self.Hit} Miss: {self.Miss}")
 
 
 # a. a directly-mapped cache, block size of 16 Bytes, a total of 4 blocks (b=16; N=1; S=4)
@@ -91,23 +145,43 @@ class CacheMoney:
 # c. a 2-way set-associative cache, block size of 8 Bytes, 4 sets (b=8; N=2; S=4)
 # d. a 4-way set-associative cache, block size of 8 Bytes, 2 sets (b=8; N=4; S=2)
 
-
+def printMemory(memory):
+    memory = memory[:]
+    k = 0
+    a = 0
+    memory[0] = format(memory[0], '08b')
+    memory[1] = format(memory[1], '08b')
+    memory[2] = format(memory[2], '08b')
+    memory[3] = format(memory[3], '08b')
+    print("\nAddress\t\tValue(+0)\tValue(+4)\tValue(+8)\tValue(+c)\tValue(+10)\tValue(+14)\tValue(+18)\tValue(+1c)", end = "")
+    for i in range(0,9):
+        print("")
+        address = '0x' + format(a, '08x')
+        print(f"{address}\t", end = "")
+        a += 32
+        for j in range(0,8):
+            byte0 = format(int(str(memory[k + 0]), 2), "02x")
+            byte1 = format(int(str(memory[k + 1]), 2), "02x")
+            byte2 = format(int(str(memory[k + 2]), 2), "02x")
+            byte3 = format(int(str(memory[k + 3]), 2), "02x")
+            print(f"0x{byte3.upper()}{byte2.upper()}{byte1.upper()}{byte0.upper()}", end = "\t")
+            k = k + 4
 t1 = 4
-Memory = []
+Memory = [ ] # each index is a byte
 print("$$$ Cash $$$")
+for i in range (100):
+    Memory.append(0)
 
+for i in range(100):
+    Memory[i] = i
 
-for i in range(20):
-    Memory.append(mem(0x2000 + 4*i, 0, 0 , 0, 0))
 cache = CacheMoney('DM',0x2000, t1)
 
 cache.printCache()
-
-count = 0
-for addr in Memory:
-    addr.writeWordMem(count)
-    count += 1
-
-    if addr.addr % (4 * 8) == 0:
-        print('\n', end=" ")
-    addr.print_mem()
+for i in range(10):
+    cache.write_cache(0x2000 + i *10)
+#cache.write_cache(0x2005)
+#cache.write_cache(0x2000)
+#cache.set[0].data[1] = Memory[4]
+cache.printCache()
+print(Memory)
