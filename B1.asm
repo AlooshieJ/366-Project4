@@ -14,17 +14,17 @@ addi $10, $0, 0x2060
 addi $9, $0, 0x2000
 outer_loop:
 addi $14, $0, 5
-lw $11, ($9)
+lw $11,0 ($9)
 inner_loop:
 addi $9, $9, 4
-lw $12, ($9)
+lw $12,0($9)
 slt $13, $12, $11
 beq $13, $0, skip
 addu $11, $0, $12
 skip:
 addi $14, $14, -1
 bne $14, $0, inner_loop
-sw $11, ($8)
+sw $11, 0 ($8)
 addi $8, $8, 4
 slt $13, $9, $10
 bne $13, $0, outer_loop 

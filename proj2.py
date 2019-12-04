@@ -436,6 +436,7 @@ class registerFile:
             return 0
         return self.data[read_index]
 
+
     def write(self, write_index, write_back_value):
         if write_index != 0:
             if write_back_value < 0:
@@ -606,7 +607,7 @@ def add(instr):
 
 
 def sub (instr): # rd = rs - rt
-    print(f"name: {instr.name} rs = {instr.rs} rd = {instr.rd} rt = {instr.rt} ")
+    print(f"name: {instr.name} rs = {instr.rs} rd = {instr.rd} rt = {instr.rt} \n ")
 
     rs = reg_file.read(instr.rs)
     rt = reg_file.read(instr.rt)
@@ -616,12 +617,15 @@ def sub (instr): # rd = rs - rt
     reg_file.update_pc()
 
 
-def addu(instr): # rd = rs + rt;
+def addu(instr): # rd = rs + rt                                                 ###################################
     print(f"name: {instr.name} rs = {instr.rs} rd = {instr.rd} rt = {instr.rt} ")
 
     rs = reg_file.read(instr.rs)
     rt = reg_file.read(instr.rt)
-    reg_file.write(instr.rd , rs + rt)
+    value = rs + rt & 0xffffffff
+    value = bin_digits(value,32)
+    value = twos_comp(int(value,2))
+    reg_file.write(instr.rd ,value)
     reg_file.update_pc()
 
 
@@ -1074,11 +1078,16 @@ def printallmem():
 
     print(" ")
 
+def printlimMem(num):
+    for row in memory[:num]:
+        if row.addr % (4 * 8) == 0:
+            print('\n', end=" ")
+        row.print_mem()
 
 def main():
     # input asm file
-    read_file = input("input file name: ")
-    print(read_file)
+    #read_file = input("input file name: ")
+    # print(read_file)
 
     h = open(read_file, 'r')
     bin_file = open("toBin.txt", 'w+')  # binary file
@@ -1169,6 +1178,11 @@ def main():
             except:
                 print("end of instr")
                 break
+        if( debug == 'y'):
+            print(dic)
+            reg_file.print_regs()
+            printlimMem(30)
+            input(" ")
 
         instr_func(sim_instr[pc])
         # time.sleep(.3)
@@ -1180,6 +1194,33 @@ def main():
     tmp = icount + jcount + rcount
     print('   dic', dic)
     
+
+
+print("Advanced MIPS simulator | ECE 366 \n Press Enter to continue ")
+input(" ")
+read_file = input("input file for simulation: ")
+print("""select CPU type or Cache simulator"
+      1)  Multi-Cycle MIPS CPU
+      2)  Pipelined MIPS CPU
+      3)  Data Cache simulation
+      """
+      )
+cpuMode = input(" ")
+
+# THIS SHOULD BE INSIDE OF THE SIMULATION FOR EACH SIMULATION CASE
+print(""" Now select if you would like to :
+
+      1) Dianosis mode (y) :
+         Step through code (Enter) , print information cycle by cycle (CPU sim)
+         or memory access' information (CacheSim)
+        
+      2) Non-stop Mode (n) :
+         run all the code and view final output 
+        
+      """)
+
+debug = input(" ")
+
 
 if __name__ == "__main__":
     main()
