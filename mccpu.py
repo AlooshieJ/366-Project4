@@ -48,6 +48,7 @@ class Block:
 
         self.valid = 0 # would have to check somehow
         self.tag = 0x0 # math to addr
+        self. size = size
 
         self.data  = []
 
@@ -56,7 +57,14 @@ class Block:
 
    # def write_to_block(self,Memory):
 
-    #    self.data# findd the correct addr
+    def write_to_blk(self, start, end):
+
+        for i in range( self.size):
+
+           self.data[i] =  Memory[ int(start,2) - 0x2000 + i]
+
+        #print(f"{start} {end} ")
+
 
 
 class CacheMoney:
@@ -104,14 +112,20 @@ class CacheMoney:
             # for i in self.set:
             #     print( i)
 # addr[-self.blk_offset:]
-    def write_cache(self,addr): # keeping track of blk addressing
+    def write_cache(self,addr, Memory =None): # keeping track of blk addressing
 
         if self.type == 'DM':
             #addr = addr + 0x2000
             addr =  bin_digits(addr,32)
             tag = addr[:self.tagsize]
+
             set = addr[-self.setNum - self.blk_offset: -self.blk_offset]
             off = addr[-self.blk_offset:]
+            strtBlk = addr[:self.tagsize + self.setNum] # memory range
+            endBlk =  strtBlk[:]
+            for i in range(self.blk_offset):
+                strtBlk += '0'
+                endBlk += '1'
             print(f"writing to addr: {addr} {hex(int(addr,2))} \n tag: {tag} set: {set} off: {off} ")
             # need a range for addr
 
@@ -122,7 +136,8 @@ class CacheMoney:
                 print(f"cold miss with addr : {addr} \n in blk info for set {set}:   tag : {self.set[int(set,2)].tag}  Valid : {self.set[int(set,2)].valid}")
                 self.set[int(set, 2)].tag = tag
                 self.set[int(set, 2)].valid = 1
-                print(f"loading blk fom Mem  {11111}  into set {set}  ")
+                print(f"loading blk fom Mem  [0x{format(int(strtBlk,2),'04x')}] - M[0x{format(int(endBlk,2),'04x')}] into set {set}  ")
+                self.set[int(set,2)].write_to_blk(strtBlk,endBlk)
             else: # valid bit, check tag
                 if self.set[int(set,2)].tag == tag: # valid tag , hit load write blk
                     self.Hit += 1
@@ -154,9 +169,9 @@ def printMemory(memory):
     # memory[2] = format(memory[2], '08b')
     # memory[3] = format(memory[3], '08b')
     print("\nAddress\t\tValue(+0)\tValue(+4)\tValue(+8)\tValue(+c)\tValue(+10)\tValue(+14)\tValue(+18)\tValue(+1c)", end = "")
-    for i in range(0,9):
+    for i in range(0,len(Memory)): # 9
         print("")
-        address = '0x' + format(a, '08x')
+        address = '0x' + format(a , '08x')
         print(f"{address}\t", end = "")
         a += 32
         for j in range(0,8):
@@ -170,13 +185,16 @@ def printMemory(memory):
             byte3 = format(int(str(memory[k + 3]), 2), "02x")
             print(f"0x{byte3.upper()}{byte2.upper()}{byte1.upper()}{byte0.upper()}", end = "\t")
             k = k + 4
+        if(k > len(Memory)):
+                break
+
 t1 = 4
 Memory = [ ] # each index is a byte
 print("$$$ Cash $$$")
-for i in range (100):
+for i in range (64):
     Memory.append(0)
 
-for i in range(100):
+for i in range(64):
     Memory[i] = i
 
 cache = CacheMoney('DM',0x2000, t1)
@@ -187,6 +205,7 @@ for i in range(10):
 #cache.write_cache(0x2005)
 #cache.write_cache(0x2000)
 #cache.set[0].data[1] = Memory[4]
+
 cache.printCache()
-printMemory(Memory)
-# print(Memory)
+#printMemory(Memory)
+print(Memory)
