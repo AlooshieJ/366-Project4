@@ -234,6 +234,35 @@ def sim(program, deBug):
             offset = offset + register[s]-0x2000
             register[t] = mem[offset]         
 
+        elif fetch[0:6] == '100011':  # LW
+            PC += 4
+            s = int(fetch[6:11],2)
+            t = int(fetch[11:16],2)
+            offset = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
+            offset = offset + register[s]-0x2000
+            memoffset0 = format((mem[offset+0]), '02x')
+            memoffset1 = format((mem[offset+1]), '02x')
+            memoffset2 = format((mem[offset+2]), '02x')
+            memoffset3 = format((mem[offset+3]), '02x')
+            loaded = memoffset3 + memoffset2 + memoffset1 + memoffset0
+            print(f"this is offset = {offset}")
+            print(f"this is loaded in hex = 0x{loaded}")
+            loaded = format(int(loaded, 16), "0b")
+            print(f"this is loaded in binary = {loaded}, length = {len(loaded)} ")
+
+            if(len(loaded) != 32 ):
+
+                while(len(loaded) < 32):
+                    loaded = "0" + loaded
+
+            if(loaded[0] == "1"):
+                loaded = twosComplementBin(loaded)
+                loaded = int(loaded, 2) * -1
+            else:
+                loaded = int(loaded,2)
+            print(f"this is loaded = {loaded}")
+            register[t] = loaded
+
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000101010': # SLT
             PC += 4
             s = int(fetch[6:11],2)
@@ -449,7 +478,7 @@ def main():
         elif(line[0:3] == "lui"): validInstructions.append(line)  # LUI
         elif(line[0:3] == "ori"): validInstructions.append(line)  # ORI
         elif(line[0:4] == "andi"): validInstructions.append(line)  # ANDI
-        elif(line[0:4] == "fold"): validInstructions.append(line)  # ANDI
+        elif(line[0:4] == "fold"): validInstructions.append(line)  # FOLD
         elif(line[0:3] == "bne"): validInstructions.append(line)   # BNE
         elif(line[0:3] == "beq"): validInstructions.append(line)   # BEQ
         elif(line[0:1] == "j"): validInstructions.append(line)   # JUMP
