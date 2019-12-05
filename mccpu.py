@@ -33,7 +33,7 @@ class fifo:
         self.size = size
 
         for i in range(size): # creating w/ all size = 0
-            self.index.append(-1)
+            self.index.append(i) # will be used to represent set #
 
 
 
@@ -48,11 +48,18 @@ class fifo:
         if len(self.index) > 0:
             tmp = self.index[0]
             self.index = self.index[1:]
+            # self.index.append(tmp)
             return tmp
 
         else:
 
             print("fifo is empty")
+
+    # def order(self,setb):
+    #
+    #     self.index.
+
+
 
 
 
@@ -263,15 +270,5 @@ print(Memory)
 pq = fifo(4)
 
 print(pq.index)
-pq.push(1)
-pq.push(2)
-pq.push(3)
-pq.push(4)
-pq.pop()
-pq.pop()
-pq.pop()
-print(pq.index)
-pq.pop()
-pq.pop()
-pq.pop()
+
 print(pq.index)
