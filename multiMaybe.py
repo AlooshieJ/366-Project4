@@ -68,10 +68,12 @@ def sim(program, deBug, CpuType):
     register = [0] * 32   # Let's initialize 32 empty registers
     mem = [0] * 0x1000     # Let's initialize 0x3000 or 12288 spaces in memory. I know this is inefficient...
     DIC = 0               # Dynamic Instr Count
-    skip = False
-    skipCount = 0
-    printDicInput = "n"
-    m = open("memAddr.txt","w+")
+    skip = False    #for deBug
+    skipCount = 0   #for deBug
+    printDicInput = "n"     #for deBug
+    m = open("memAddr.txt","w+") #outPut File for cash
+
+    #-----ForCycleMode-----#
     cycle = {
         'count' : 0,
         'length' : 3
@@ -85,6 +87,47 @@ def sim(program, deBug, CpuType):
         fetch = program[PC]
         DIC += 1
         register[0] = 0 # keep $0 = 0
+
+        #-------------------------------------------------------maybe for multicycle--------------------------------------------------------------------#
+        # if(CpuType == "m"):
+        #     if(cycle.get('count') == 0):
+        #         while(cycle['count'] <= cycleStop):
+        #             cycle['count'] += 1
+        #             print(f"cycleCount:{cycle['count']},     cycleStop:{cycleStop},     dic:{DIC},    fetch = {format(int(fetch,2), '08x')},   PC = {PC}")
+        #             print(f"this is cycle #{cycle['count']} stuff")
+        #             print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
+        #             print('Dynamic Instr Count: ', DIC)
+        #             print('Registers: $8 - $23')
+        #             printList(register)
+        #             print('\nMemory contents 0x2000 - 0x2100 ')
+        #             for z in range(0,9):   # j is a row of 0x20 addresses in Mars (can be from 0 to 32 - but need at least 9 to show all addresses for project1)
+        #                 print(hex(z*32+0x2000), end = "\t")
+        #                 for y in range(0,8):        # i is the column in MARS such that: address + value(i*4)
+        #                     print ("0x" +bit32Mem[z*8+y], end="\t")
+        #                 print("\n", end = "")
+        #             print('')
+
+
+        # if(cycle.get('count') == 0):
+        # oldMem = []*0x400
+        # for i in range (0,0x400,4):
+        #     bits = hex((mem[i+3]<<24) + (mem[i+2]<<16) + (mem[i+1]<<8) + (mem[i]))
+        #     oldMem.append(("%08X" % int(bits, 16)))
+        # oldRegister = register
+        # print(f"Previous Status")
+        # print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
+        # print('Dynamic Instr Count: ', DIC-1)
+        # print('Old Registers: $8 - $23')
+        # printList(oldRegister)
+        # print('\nMemory contents 0x2000 - 0x2100 ')
+        # for z in range(0,9):   # j is a row of 0x20 addresses in Mars (can be from 0 to 32 - but need at least 9 to show all addresses for project1)
+        #     print(hex(z*32+0x2000), end = "\t")
+        #     for y in range(0,8):        # i is the column in MARS such that: address + value(i*4)
+        #         print ("0x" +oldMem[z*8+y], end="\t")
+        #     print("\n", end = "")
+        # print('')
+
+        #---------------------------------------Begining to simulate instruction---------------------------------------------------------------------------------------#
 
         if fetch[0:6] == '001000': # ADDI
             PC += 4
@@ -311,22 +354,42 @@ def sim(program, deBug, CpuType):
 
         bit32Mem = []*0x400
         for i in range (0,0x400,4):
-            bits32 = hex((mem[i+3]<<24) + (mem[i+2]<<16) + (mem[i+1]<<8) + (mem[i]))
-            bit32Mem.append(("%08X" % int(bits32, 16)))
+            bits = hex((mem[i+3]<<24) + (mem[i+2]<<16) + (mem[i+1]<<8) + (mem[i]))
+            bit32Mem.append(("%08X" % int(bits, 16)))
         #------------------------------------------------------------Simulation Part Done----------------------------------------------------------------------------------------#
 
         #-----------------------------------------------------Multi-Cycle---------------------------------------------------------------------------------------------#
         if(CpuType == "m"):
             cycleStop = cycle['count'] + cycle['length']
+
+            #print(f"CYCLE = {cycle.get('count')} ")
+            # if(cycle.get('count') == 0):
+            #     while(cycle['count'] <= cycleStop):
+            #         cycle['count'] += 1
+            #         print(f"cycleCount:{cycle['count']},     cycleStop:{cycleStop},     dic:{DIC},    fetch = {format(int(fetch,2), '08x')},   PC = {PC}")
+            #         print(f"this is cycle #{cycle['count']} stuff")
+            #         print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
+            #         print('Dynamic Instr Count: ', DIC)
+            #         print('Registers: $8 - $23')
+            #         printList(register)
+            #         print('\nMemory contents 0x2000 - 0x2100 ')
+            #         for z in range(0,9):   # j is a row of 0x20 addresses in Mars (can be from 0 to 32 - but need at least 9 to show all addresses for project1)
+            #             print(hex(z*32+0x2000), end = "\t")
+            #             for y in range(0,8):        # i is the column in MARS such that: address + value(i*4)
+            #                 print ("0x" +bit32Mem[z*8+y], end="\t")
+            #             print("\n", end = "")
+            #         print('')
+
+
             while(cycle['count'] < cycleStop):
                 cycle['count'] += 1
-                print(f"this is cycleCount:{cycle['count']}, this is cycleStop:{cycleStop}, this is dic:{DIC}, fetch = {format(int(fetch,2), '08x')}, PC = {PC}")
+                print(f"cycleCount:{cycle['count']},     cycleStop:{cycleStop},     dic:{DIC},    fetch = {format(int(fetch,2), '08x')},   PC = {PC}")
                 print(f"this is cycle #{cycle['count']} stuff")
                 print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
                 print('Dynamic Instr Count: ', DIC)
                 print('Registers: $8 - $23')
                 printList(register)
-                print('\nMemory contents 0x2000 - 0x2100 ', mem[0:256], end = "")
+                print('\nMemory contents 0x2000 - 0x2100 ')
                 for z in range(0,9):   # j is a row of 0x20 addresses in Mars (can be from 0 to 32 - but need at least 9 to show all addresses for project1)
                     print(hex(z*32+0x2000), end = "\t")
                     for y in range(0,8):        # i is the column in MARS such that: address + value(i*4)
@@ -361,7 +424,7 @@ def sim(program, deBug, CpuType):
                 print('Dynamic Instr Count: ', DIC)
                 print('Registers: $8 - $23')
                 printList(register)
-                print('\nMemory contents 0x2000 - 0x2100 ', mem[0:256], end = "")
+                print('\nMemory contents 0x2000 - 0x2100 ')
                 for z in range(0,9):   # j is a row of 0x20 addresses in Mars (can be from 0 to 32 - but need at least 9 to show all addresses for project1)
                     print(hex(z*32+0x2000), end = "\t")
                     for y in range(0,8):        # i is the column in MARS such that: address + value(i*4)
@@ -390,12 +453,17 @@ def sim(program, deBug, CpuType):
     DIC = DIC +1
 
 #---------------------------Final Print Out stats---------------------------------------------------------------------
+    # print(f"CYCLE COUNT = {cycle['count']}, CYCCLESTOP = {cycleStop},    FETCH = {format(int(fetch,2), '08x')}")
+    # while(cycle['count'] < cycleStop):
+    #     cycle['count'] += 1
+    #     print(f"this is cycleCount:{cycle['count']}, this is cycleStop:{cycleStop}, this is dic:{DIC}, fetch = {format(int(fetch,2), '08x')}, PC = {PC}")
+    #     print(f"this is cycle #{cycle['count']} stuff")
     print('***Simulation finished***')
     print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
     print('Dynamic Instr Count: ', DIC)
     print('Registers: $8 - $23')
     printList(register)
-    print('\nMemory contents 0x2000 - 0x2100 ', mem[0:256], end = "")
+    print('\nMemory contents 0x2000 - 0x2100 ', end = "")
     print("")
 
 

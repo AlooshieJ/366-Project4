@@ -60,7 +60,7 @@ def decToBinSig(dec, numBits):
 
 
 #-----SIM-----#
-def sim(program, deBug):
+def sim(program, deBug, CpuType):
     finished = False      # Is the simulation finished? 
     PC = 0                # Program Counter
     HI = 0                
@@ -72,6 +72,10 @@ def sim(program, deBug):
     skipCount = 0
     printDicInput = "n"
     m = open("memAddr.txt","w+")
+    cycle = {
+        'count' : 0,
+        'length' : 3
+    }
 
 
     while(not(finished)):
@@ -79,7 +83,6 @@ def sim(program, deBug):
             finished = True
             break
         fetch = program[PC]
-
         DIC += 1
         register[0] = 0 # keep $0 = 0
 
@@ -89,7 +92,11 @@ def sim(program, deBug):
             t = int(fetch[11:16],2)
             imm = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
             register[t] = register[s] + imm
-
+            '''
+            controlUnit.name = Addi
+            controlUnit.PC = PC
+            controlUnit.CycleAmount = length of Cycles instruction takes
+            '''
 
 
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000100001': # ADDU
@@ -308,11 +315,31 @@ def sim(program, deBug):
             bit32Mem.append(("%08X" % int(bits32, 16)))
         #------------------------------------------------------------Simulation Part Done----------------------------------------------------------------------------------------#
 
-        #--------------------------------------------------------------------Cycles?---------------------------------------------------------------------------------------------#
-        # print(f"this is fetch: 0x{format(int(fetch,2), '08x')} @ DIC:{DIC-1}")
+        #-----------------------------------------------------Multi-Cycle---------------------------------------------------------------------------------------------#
+        if(CpuType == "m"):
+            cycleStop = cycle['count'] + cycle['length']
+            while(cycle['count'] < cycleStop):
+                cycle['count'] += 1
+                print(f"this is cycleCount:{cycle['count']}, this is cycleStop:{cycleStop}, this is dic:{DIC}, fetch = {format(int(fetch,2), '08x')}, PC = {PC}")
+                print(f"this is cycle #{cycle['count']} stuff")
+                print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
+                print('Dynamic Instr Count: ', DIC)
+                print('Registers: $8 - $23')
+                printList(register)
+                print('\nMemory contents 0x2000 - 0x2100 ', mem[0:256], end = "")
+                for z in range(0,9):   # j is a row of 0x20 addresses in Mars (can be from 0 to 32 - but need at least 9 to show all addresses for project1)
+                    print(hex(z*32+0x2000), end = "\t")
+                    for y in range(0,8):        # i is the column in MARS such that: address + value(i*4)
+                        print ("0x" +bit32Mem[z*8+y], end="\t")
+                    print("\n", end = "")
+                print('')
+
+                if(deBug == "y"):
+                    deBug = input("Next Cycle?\n")
+
 
         #---------------------------------------------For Debug---------------------------------------------------------------------------------#
-        if(printDicInput == "y" and (skip == True)):
+        if(printDicInput == "y" and (skip == True) ):
             print("-----------------------")
             print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
             print('Dynamic Instr Count: ', DIC)
@@ -328,7 +355,7 @@ def sim(program, deBug):
 
         if(skip == False):
             printDicInput = "n"
-            if(deBug == "y"):
+            if(deBug == "y" and CpuType == "n"):
                 print("-----------------------")
                 print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
                 print('Dynamic Instr Count: ', DIC)
@@ -879,8 +906,11 @@ def main():
 
 
     # We SHALL start the simulation!
+    CpuType = input("What kind of MIPS CPU would you like? 'm' for multi-cyle, 'p' for pipelined, 'n' for none\n")
+    if(CpuType == "n"):
+        pass
     deBug = input("Want to enter debug mode, to step through every step? type y for yes \n")
-    sim(binaryInstructions, deBug)
+    sim(binaryInstructions, deBug, CpuType)
 
 
 if __name__ == "__main__":
