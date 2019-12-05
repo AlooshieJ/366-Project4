@@ -24,6 +24,45 @@ class mem:
 
         # print(hex(self.addr) + str(" ") + b3 + b2+ b1+ b0 + str(" | ")) #, end=" ")
 
+
+
+class fifo:
+    def __init__(self, size):
+
+        self.index = []
+        self.size = size
+
+        for i in range(size): # creating w/ all size = 0
+            self.index.append(-1)
+
+
+
+    def push(self,value):
+
+        self.index.append(value)
+        if len(self.index) > self.size:
+            self.pop()
+
+    def pop (self): # my pop return  what it pops out
+
+        if len(self.index) > 0:
+            tmp = self.index[0]
+            self.index = self.index[1:]
+            return tmp
+
+        else:
+
+            print("fifo is empty")
+
+
+
+
+
+
+
+
+
+
 # note, doesnt not work with negatives
     def writeWordMem(self, value):
 
@@ -49,6 +88,7 @@ class Block:
         self.valid = 0 # would have to check somehow
         self.tag = 0x0 # math to addr
         self. size = size
+        self.usedCount = 0
 
         self.data  = []
 
@@ -62,6 +102,14 @@ class Block:
         for i in range( self.size):
 
            self.data[i] =  Memory[ int(start,2) - 0x2000 + i]
+
+    def read_byte(self,offset):
+
+        return self.data[int(offset,2)]
+
+
+
+
 
         #print(f"{start} {end} ")
 
@@ -82,7 +130,7 @@ class CacheMoney:
         self.way = []
         self.Hit = 0
         self.Miss = 0
-        self.leastUsed = [] # list size of total blocks, should incorporate a ways check too
+        self.leastUsed = fifo(total_blocks) # list size of total blocks, should incorporate a ways check too
 
 
         if self.type == 'DM':
@@ -123,6 +171,7 @@ class CacheMoney:
             off = addr[-self.blk_offset:]
             strtBlk = addr[:self.tagsize + self.setNum] # memory range
             endBlk =  strtBlk[:]
+            self.leastUsed = int(set,2)
             for i in range(self.blk_offset):
                 strtBlk += '0'
                 endBlk += '1'
@@ -142,6 +191,7 @@ class CacheMoney:
                 if self.set[int(set,2)].tag == tag: # valid tag , hit load write blk
                     self.Hit += 1
                     print(f"Hit with addr: {addr}\n in blk info for set {set}: tag : {self.set[int(set,2)].tag} Valid : {self.set[int(set,2)].valid}")
+                    print(f"No update to cache, loading from blk ")
 
 
                 else: # not the same tag , overwite set
@@ -152,7 +202,7 @@ class CacheMoney:
 
             for i in range(self.totalblks):
                 print(f" set: {i}  tag  : {self.set[i].tag} valid: {self.set[i].valid}")
-            print(f"Hits: {self.Hit} Miss: {self.Miss}")
+            print(f"Hits: {self.Hit} Miss: {self.Miss} Last used set: {self.leastUsed}")
 
 
 # a. a directly-mapped cache, block size of 16 Bytes, a total of 4 blocks (b=16; N=1; S=4)
@@ -188,20 +238,20 @@ def printMemory(memory):
         if(k > len(Memory)):
                 break
 
-t1 = 4
 Memory = [ ] # each index is a byte
 print("$$$ Cash $$$")
-for i in range (64):
+for i in range (1024):
     Memory.append(0)
 
 for i in range(64):
     Memory[i] = i
 
-cache = CacheMoney('DM',0x2000, t1)
+cache = CacheMoney('DM',0x2000, 4)
 
 cache.printCache()
-for i in range(10):
-    cache.write_cache(0x2000 + i *10)
+for i in range(64):
+    cache.write_cache(0x2000 + i )
+
 #cache.write_cache(0x2005)
 #cache.write_cache(0x2000)
 #cache.set[0].data[1] = Memory[4]
@@ -209,3 +259,19 @@ for i in range(10):
 cache.printCache()
 #printMemory(Memory)
 print(Memory)
+#print(cache.set[3].read_byte('01'))
+pq = fifo(4)
+
+print(pq.index)
+pq.push(1)
+pq.push(2)
+pq.push(3)
+pq.push(4)
+pq.pop()
+pq.pop()
+pq.pop()
+print(pq.index)
+pq.pop()
+pq.pop()
+pq.pop()
+print(pq.index)
