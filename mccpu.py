@@ -5,6 +5,15 @@ def bin_digits(n, bits):
     s = bin(n & int("1"*bits, 2))[2:]
     return ("{0:0>%s}" % bits).format(s)
 
+def minBits(dec):
+    if(dec == 0):
+        numBits = 1
+    elif(dec < 0):
+        return "This is unsigned, no negative numbers"
+    else:
+        numBits = int(log(abs(dec), 2) + 1 )
+    return numBits
+
 class mem:
     def __init__(self, address, b3, b2, b1, b0):
 
@@ -23,6 +32,31 @@ class mem:
         print("{0:02x}".format(self.b0), end="")
 
         # print(hex(self.addr) + str(" ") + b3 + b2+ b1+ b0 + str(" | ")) #, end=" ")
+#
+# # def fetch( instruction , register ,memory ):
+# #     # check insturction
+# #     # update dictionary
+# #     # print dictionary...
+# #
+# # def decode(instruciton):
+# #     # prnit dictionary
+#
+#
+# dict = {
+#     # key     : [0] [1] [2]
+#     "control1": 0
+#
+# }
+# dict['control1'] = 'x'
+# for x in dict:
+#     print(dict[x])
+# #-------------------- sim loop , so we have all info on instruction
+# # x = # cycles for that intruction
+# # for i in range( x):
+# #     fetch( instruction)
+# #     ddecode
+# #
+#
 
 
 
@@ -58,7 +92,8 @@ class fifo:
         #     print("fifo is empty")
 
    # def leastUsedSwap(self):
-
+    def print(self):
+        print(f"fetch: {self.top() }")
 
 
 
@@ -98,6 +133,7 @@ class Block:
         for i in range(size):
             self.data.append('$') # read from mem each index is a byte
 
+
    # def write_to_block(self,Memory):
 
     def write_to_blk(self, start, end):
@@ -120,9 +156,9 @@ class Block:
 
 class CacheMoney:
 
-    def __init__(self, option, addr,total_blocks= 4):
+    def __init__(self, option, addr,total_blocks,bytes):
 
-        self.blk_size = 16 # input
+        self.blk_size = bytes # input
         self.blk_offset = 0
         # self.blks = []
         self.totalblks = total_blocks
@@ -133,14 +169,15 @@ class CacheMoney:
         self.way = []
         self.Hit = 0
         self.Miss = 0
+        self.Count = 0
         self.leastUsed = fifo(total_blocks) # list size of total blocks, should incorporate a ways check too
 
 
         if self.type == 'DM':
             print(f"Creating Direct Map Cash | total blocks: {self.totalblks}  block size: {self.blk_size}")
 
-            self.blk_offset = int(log(self.blk_size,2))
-            self.setNum =     int(log(self.totalblks,2))
+            self.blk_offset = minBits(self.blk_size -1)
+            self.setNum =     minBits(self.totalblks -1)
             self.tagsize = 32 - (self.setNum + self.blk_offset)
             print(f"tag size: {self.tagsize} set size: {self.setNum} in blk off: {self.blk_offset}")
 
@@ -166,9 +203,12 @@ class CacheMoney:
     def write_cache(self,addr, Memory =None): # keeping track of blk addressing
 
         if self.type == 'DM':
+            self.Count += 1
             #addr = addr + 0x2000
             addr =  bin_digits(addr,32)
             tag = addr[:self.tagsize]
+
+            tag = hex(int(tag,2))
 
             set = addr[-self.setNum - self.blk_offset: -self.blk_offset]
             off = addr[-self.blk_offset:]
@@ -178,14 +218,14 @@ class CacheMoney:
             for i in range(self.blk_offset):
                 strtBlk += '0'
                 endBlk += '1'
-            print(f"writing to addr: {addr} {hex(int(addr,2))} \n tag: {tag} set: {set} off: {off} ")
+            print(f"({self.Count}) addr: {hex(int(addr,2))} \ntag: {tag} set: {set} off: {off} ")
             # need a range for addr
 
             if self.set[int(set,2)].valid == 0: # cold miss
                 self.Miss +=1
 
 
-                print(f"cold miss with addr : {addr} \n in blk info for set {set}:   tag : {self.set[int(set,2)].tag}  Valid : {self.set[int(set,2)].valid}")
+                print(f"cold miss with addr : {hex(int(addr,2))} \nin blk info for set {set}:   tag : {self.set[int(set,2)].tag}  Valid : {self.set[int(set,2)].valid}")
                 self.set[int(set, 2)].tag = tag
                 self.set[int(set, 2)].valid = 1
                 print(f"loading blk fom Mem  [0x{format(int(strtBlk,2),'04x')}] - M[0x{format(int(endBlk,2),'04x')}] into set {set}  ")
@@ -193,19 +233,27 @@ class CacheMoney:
             else: # valid bit, check tag
                 if self.set[int(set,2)].tag == tag: # valid tag , hit load write blk
                     self.Hit += 1
-                    print(f"Hit with addr: {addr}\n in blk info for set {set}: tag : {self.set[int(set,2)].tag} Valid : {self.set[int(set,2)].valid}")
+                    print(f"Hit with addr: {hex(int(addr,2))}\nin blk info for set {set}: tag : {self.set[int(set,2)].tag} Valid : {self.set[int(set,2)].valid}")
                     print(f"No update to cache, loading from blk ")
+
+                    ##ADD CACHE ACCESS
 
 
                 else: # not the same tag , overwite set
                     self.Miss += 1
-                    print(f"Miss with addr {addr}\n in blk info for set {set}: tag: {self.set[int(set,2)].tag} Valid: {self.set[int(set,2)].valid}")
+                    print(f"Miss with addr {hex(int(addr,2))}\n in blk info for set {set}: tag: {self.set[int(set,2)].tag} Valid: {self.set[int(set,2)].valid}")
                     print(f"access tag: {tag} updating blk with Memory FIX THIS!!!!")
+
+                    # add swap with memory
+
                     self.set[int(set, 2)].tag = tag
 
-            for i in range(self.totalblks):
-                print(f" set: {i}  tag  : {self.set[i].tag} valid: {self.set[i].valid}")
-            print(f"Hits: {self.Hit} Miss: {self.Miss} Last used set: {self.leastUsed}")
+            print(f"updated blk | set: {i}  tag  : {self.set[i].tag} valid: {self.set[i].valid}")
+            print("")
+
+    def outputDM(self):
+
+        print(f"Hits: {self.Hit} Miss: {self.Miss} | total memory Accesses: {self.Count} Last used set: {self.leastUsed}")
 
 
 # a. a directly-mapped cache, block size of 16 Bytes, a total of 4 blocks (b=16; N=1; S=4)
@@ -244,22 +292,26 @@ def printMemory(memory):
 Memory = [ ] # each index is a byte
 print("$$$ Cash $$$")
 for i in range (1024):
-    Memory.append(0)
+    Memory.append(i)
 
-for i in range(64):
-    Memory[i] = i
+f = open('memAddr.txt',"r")
+addrs = []
+m = []
+for x in f.readlines():
+    addrs.append(x)
 
-cache = CacheMoney('DM',0x2000, 4)
-
+for line in addrs:
+    line = line.split(',')
+    m.append(line[2][1:-3])
+print(m)
+cache = CacheMoney('DM',0x2000, 4, 16) # type of cache , mem? , sets, bytes
 cache.printCache()
-for i in range(64):
-    cache.write_cache(0x2000 + i )
 
-#cache.write_cache(0x2005)
-#cache.write_cache(0x2000)
-#cache.set[0].data[1] = Memory[4]
-
+for mems in m:
+    cache.write_cache(int(mems,16))
 cache.printCache()
+cache.outputDM()
+
 #printMemory(Memory)
 print(Memory)
 #print(cache.set[3].read_byte('01'))
