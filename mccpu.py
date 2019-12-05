@@ -32,29 +32,32 @@ class fifo:
         self.index = []
         self.size = size
 
-        for i in range(size): # creating w/ all size = 0
-            self.index.append(-1)
+        #for i in range(size): # creating w/ all size = 0
+         #   self.index.append(i)
 
 
 
     def push(self,value):
 
         self.index.append(value)
-        if len(self.index) > self.size:
-            self.pop()
+        #if len(self.index) > self.size:
+           # self.pop()
 
-    def pop (self): # my pop return  what it pops out
+    def top (self): # my pop return  what it pops out
+        return self.index[0]
+        #
+        # if len(self.index) > 0:
+        #     tmp = self.index[0]
+        #     self.index = self.index[1:]
+        #     self.index.append(tmp)
+        #     #self.index = self.index[1:]
+        #     return tmp
+        #
+        # else:
+        #
+        #     print("fifo is empty")
 
-        if len(self.index) > 0:
-            tmp = self.index[0]
-            self.index = self.index[1:]
-            return tmp
-
-        else:
-
-            print("fifo is empty")
-
-
+   # def leastUsedSwap(self):
 
 
 
@@ -260,18 +263,26 @@ cache.printCache()
 #printMemory(Memory)
 print(Memory)
 #print(cache.set[3].read_byte('01'))
-pq = fifo(4)
-
-print(pq.index)
-pq.push(1)
-pq.push(2)
-pq.push(3)
-pq.push(4)
-pq.pop()
-pq.pop()
-pq.pop()
-print(pq.index)
-pq.pop()
-pq.pop()
-pq.pop()
-print(pq.index)
+# pq = fifo(4)
+#
+# print(pq.index)
+# pq.push(1)
+# print(pq.index)
+#
+# pq.push(2)
+# print(pq.index)
+#
+# pq.push(3)
+# print(pq.index)
+#
+# pq.push(4)
+# print(pq.index)
+# print( pq.top())
+# print(pq.index)
+#
+# pq.push(3)
+# print(pq.index)
+#
+# pq.pop()
+#
+# print(pq.index)
