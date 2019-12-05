@@ -78,9 +78,6 @@ def sim(program, deBug):
             break
         fetch = program[PC]
 
-        print(f"Fetch = 0x{format(int(fetch,2), '08x')} @ dic = {DIC} | fetch 0:6 ={fetch[0:6]} | PC= {PC}")
-        print(f"register ${int(fetch[6:11],2)} = {register[int(fetch[6:11],2)]} \n imm = {-(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)}")
-
         DIC += 1
         register[0] = 0 # keep $0 = 0
 
@@ -89,7 +86,6 @@ def sim(program, deBug):
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
             imm = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
-            print(f"register ${s} = {register[s]} \n imm = {imm}")
             register[t] = register[s] + imm
 
 
@@ -166,7 +162,6 @@ def sim(program, deBug):
             # Compare the registers and decide if jumping or not
             if register[s] != register[t]:
                 PC += imm*4
-            print(f"THIS IS PC AFTER BNE {PC}")
         
         elif fetch[0:6] == '001101':   # ORI
             PC += 4
@@ -224,10 +219,8 @@ def sim(program, deBug):
             loaded = format(int(loaded, 16), "0b")
 
             if(len(loaded) != 32 ):
-
                 while(len(loaded) < 32):
                     loaded = "0" + loaded
-
             if(loaded[0] == "1"):
                 loaded = twosComplementBin(loaded)
                 loaded = int(loaded, 2) * -1
@@ -312,11 +305,12 @@ def sim(program, deBug):
             bit32Mem.append(("%08X" % int(bits32, 16)))
 
         if(printDicInput == "y" and (skip == True)):
+            print("-----------------------")
             print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
-            print('Dynamic Instr Count ', DIC)
-            print('Registers $8 - $23')
+            print('Dynamic Instr Count: ', DIC)
+            print('Registers: $8 - $23')
             printList(register)
-            print("Address Value(+0)\tValue(+4)\tValue(+8)\tValue(+c)\tValue(+10)\tValue(+14)\tValue(+18)\tValue(1c)")
+            print("\nAddress Value(+0)\tValue(+4)\tValue(+8)\tValue(+c)\tValue(+10)\tValue(+14)\tValue(+18)\tValue(1c)", end = "")
             for z in range(0,9):   # j is a row of 0x20 addresses in Mars (can be from 0 to 32 - but need at least 9 to show all addresses for project1)
                 print(hex(z*32+0x2000), end = "\t")
                 for y in range(0,8):        # i is the column in MARS such that: address + value(i*4)
@@ -327,11 +321,12 @@ def sim(program, deBug):
         if(skip == False):
             printDicInput = "n"
             if(deBug == "y"):
+                print("-----------------------")
                 print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
-                print('Dynamic Instr Count ', DIC)
-                print('Registers $8 - $23')
+                print('Dynamic Instr Count: ', DIC)
+                print('Registers: $8 - $23')
                 printList(register)
-                print("Address Value(+0)\tValue(+4)\tValue(+8)\tValue(+c)\tValue(+10)\tValue(+14)\tValue(+18)\tValue(1c)")
+                print('\nMemory contents 0x2000 - 0x2100 ', mem[0:256], end = "")
                 for z in range(0,9):   # j is a row of 0x20 addresses in Mars (can be from 0 to 32 - but need at least 9 to show all addresses for project1)
                     print(hex(z*32+0x2000), end = "\t")
                     for y in range(0,8):        # i is the column in MARS such that: address + value(i*4)
@@ -362,16 +357,16 @@ def sim(program, deBug):
     # Finished simulations. Let's print out some stats
     print('***Simulation finished***')
     print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
-    print('Dynamic Instr Count ', DIC)
-    print('Registers $8 - $23')
+    print('Dynamic Instr Count: ', DIC)
+    print('Registers: $8 - $23')
     printList(register)
-    print('Memory contents 0x2000 - 0x2100 ', mem[0:256])
+    print('\nMemory contents 0x2000 - 0x2100 ', mem[0:256], end = "")
     print("")
 
 
     outMem = open('outputMemory.txt', "w+")
 
-    print("Address Value(+0)\tValue(+4)\tValue(+8)\tValue(+c)\tValue(+10)\tValue(+14)\tValue(+18)\tValue(1c)\n")
+    print("Address Value(+0)\tValue(+4)\tValue(+8)\tValue(+c)\tValue(+10)\tValue(+14)\tValue(+18)\tValue(1c)\n", end = "")
     outMem.write("Address Value(+0)\tValue(+4)\tValue(+8)\tValue(+c)\tValue(+10)\tValue(+14)\tValue(+18)\tValue(1c)\n")
     for j in range(0,9):   # j is a row of 0x20 addresses in Mars (can be from 0 to 32 - but need at least 9 to show all addresses for project1)
         print(hex(j*32+0x2000), end = "\t")
@@ -491,7 +486,6 @@ def main():
     i = 0
     while(i < len(validInstructions)):
         line = validInstructions[i]
-        print(f" THIS IS LIIINNEEEE ========= {line} and i = {i}")
         if(line[0:5] == "addiu"): # ADDIU
             line = line.replace("addiu","")
             line = line.split(",")
@@ -524,8 +518,6 @@ def main():
             rs = format(int(line[1]),'05b')
             rt = format(int(line[2]),'05b')
             binary = str('000000') + str(rs) + str(rt) + str(rd) + str('00000100001')
-            #print(binary)
-            #print(binaryInstructions)
             binaryInstructions[i * 4] = binary
             #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x") + "\n")
