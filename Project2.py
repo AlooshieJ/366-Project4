@@ -71,6 +71,8 @@ def sim(program, deBug):
     skip = False
     skipCount = 0
     printDicInput = "n"
+    m = open("memAddr.txt","w+")
+
 
     while(not(finished)):
         if PC == len(program) :
@@ -183,6 +185,7 @@ def sim(program, deBug):
             t = int(fetch[11:16],2)
             offset = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
             offset = offset + register[s]-0x2000
+            m.write(f"SW @ dic:, {DIC - 1}, {format((offset + 0x2000), '08x')}  \n")
             if (offset % 4) == 0:
                 mem[offset+3] = (register[t] >> 24) & 0x000000ff  # +3
                 mem[offset+2] = (register[t] >> 16) & 0x000000ff # +2
@@ -211,13 +214,13 @@ def sim(program, deBug):
             t = int(fetch[11:16],2)
             offset = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
             offset = offset + register[s]-0x2000
+            m.write(f"LW @ dic:, {DIC - 1}, {format((offset + 0x2000), '08x')}  \n")
             memoffset0 = format((mem[offset+0]), '02x')
             memoffset1 = format((mem[offset+1]), '02x')
             memoffset2 = format((mem[offset+2]), '02x')
             memoffset3 = format((mem[offset+3]), '02x')
             loaded = memoffset3 + memoffset2 + memoffset1 + memoffset0
             loaded = format(int(loaded, 16), "0b")
-
             if(len(loaded) != 32 ):
                 while(len(loaded) < 32):
                     loaded = "0" + loaded
@@ -303,10 +306,10 @@ def sim(program, deBug):
         for i in range (0,0x400,4):
             bits32 = hex((mem[i+3]<<24) + (mem[i+2]<<16) + (mem[i+1]<<8) + (mem[i]))
             bit32Mem.append(("%08X" % int(bits32, 16)))
-        #------------------------------------------------------------Simulation Part Done---------------------------------------------------------------------------------------#
+        #------------------------------------------------------------Simulation Part Done----------------------------------------------------------------------------------------#
 
-         #---------------------------------------------Cycles?----------------------------------------------------------------------------------#
-        print(f"this is fetch: 0x{format(int(fetch,2), '08x')} @ DIC:{DIC-1}")
+        #--------------------------------------------------------------------Cycles?---------------------------------------------------------------------------------------------#
+        # print(f"this is fetch: 0x{format(int(fetch,2), '08x')} @ DIC:{DIC-1}")
 
         #---------------------------------------------For Debug---------------------------------------------------------------------------------#
         if(printDicInput == "y" and (skip == True)):
@@ -382,7 +385,8 @@ def sim(program, deBug):
             outMem.write("\t")
         outMem.write("\n")
         print("\n", end = "")
-        
+
+    m.close()
     outMem.close()
 
         # print(hex(mem[i+3]<<24) + hex(mem[i+2]<<16) + hex(mem[i+1]<<8) + hex(mem[i]) )
@@ -399,6 +403,7 @@ def main():
     #----opening files----#
     f = open("output.txt","w+")
     h = open("TestCase24.asm","r")                 # INPUT FILE NAME WITH ASM CODE HERE
+
     #h = open("Hash-MIPS-plus.asm","r")
     #h = open("TestCase.asm","r")
     asm = h.readlines()
@@ -467,8 +472,6 @@ def main():
         i+=1
 
 
-    print(validInstructions)
-    listPrint(validInstructions)
     #-----saving Label Names and Indexes-----#
     #-----and deleting Labels from ValidInstructions-----#
     i = 0
@@ -872,6 +875,7 @@ def main():
     #--Closing Files--#
     f.close()
     h.close()
+
 
 
     # We SHALL start the simulation!

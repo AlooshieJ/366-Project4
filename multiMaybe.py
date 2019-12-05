@@ -394,7 +394,6 @@ def main():
     #----opening files----#
     f = open("output.txt","w+")
     h = open("TestCase24.asm","r")                 # INPUT FILE NAME WITH ASM CODE HERE
-    f = open(".txt","w+")
     #h = open("Hash-MIPS-plus.asm","r")
     #h = open("TestCase.asm","r")
     asm = h.readlines()
