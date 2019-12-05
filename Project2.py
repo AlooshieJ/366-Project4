@@ -466,6 +466,7 @@ def main():
 
     #-----saving Label Names and Indexes-----#
     #-----and deleting Labels from ValidInstructions-----#
+    print(validInstructions)
     i = 0
     while(i < len(validInstructions)):
         line = validInstructions[i]
@@ -476,6 +477,7 @@ def main():
 
         i +=1
 
+    print(validInstructions)
 
 
     #-----making list of pure valid binary instructions at every 4th index------#
@@ -636,7 +638,7 @@ def main():
             line = line.replace("(",",")
             line = line.replace(")","")
             line = line.split(",")
-            imm = format(int(line[1]),'016b') if (int(line[1]) > 0) else format(65536 + int(line[1]),'016b')
+            imm = format(int(line[1]),'016b') if (int(line[1]) >= 0) else format(65536 + int(line[1]),'016b')
             rs = format(int(line[2]),'05b')
             rt = format(int(line[0]),'05b')
             binary = str('101011') + str(rs) + str(rt) + str(imm)
@@ -651,7 +653,7 @@ def main():
             line = line.replace("(",",")
             line = line.replace(")","")
             line = line.split(",")
-            imm = format(int(line[1]),'016b') if (int(line[1]) > 0) else format(65536 + int(line[1]),'016b')
+            imm = format(int(line[1]),'016b') if (int(line[1]) >= 0) else format(65536 + int(line[1]),'016b')
             rs = format(int(line[2]),'05b')
             rt = format(int(line[0]),'05b')
             binary = str('100011') + str(rs) + str(rt) + str(imm)
