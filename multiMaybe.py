@@ -61,9 +61,9 @@ def decToBinSig(dec, numBits):
 
 #-----SIM-----#
 def sim(program, deBug):
-    finished = False      # Is the simulation finished? 
+    finished = False      # Is the simulation finished?
     PC = 0                # Program Counter
-    HI = 0                
+    HI = 0
     LO = 0
     register = [0] * 32   # Let's initialize 32 empty registers
     mem = [0] * 0x1000     # Let's initialize 0x3000 or 12288 spaces in memory. I know this is inefficient...
@@ -144,7 +144,7 @@ def sim(program, deBug):
             else:
                 t = int(t, 2)
             register[d] = t
-            
+
         elif fetch[0:6] == '000100':  # BEQ
             PC += 4
             s = int(fetch[6:11],2)
@@ -162,7 +162,7 @@ def sim(program, deBug):
             # Compare the registers and decide if jumping or not
             if register[s] != register[t]:
                 PC += imm*4
-        
+
         elif fetch[0:6] == '001101':   # ORI
             PC += 4
             s = int(fetch[6:11],2)
@@ -175,7 +175,7 @@ def sim(program, deBug):
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
             imm = int(fetch[16:],2)
-            register[t] = register[s] & imm            
+            register[t] = register[s] & imm
 
         elif fetch[0:6] == '101011':  # SW
             PC += 4
@@ -203,7 +203,7 @@ def sim(program, deBug):
             t = int(fetch[11:16],2)
             offset = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
             offset = offset + register[s]-0x2000
-            register[t] = mem[offset]         
+            register[t] = mem[offset]
 
         elif fetch[0:6] == '100011':  # LW
             PC += 4
@@ -233,7 +233,7 @@ def sim(program, deBug):
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
             d = int(fetch[16:21],2)
-            if (register[s] < register[t]): 
+            if (register[s] < register[t]):
                 register[d] = 1
             else:
                 register[d] = 0
@@ -250,7 +250,7 @@ def sim(program, deBug):
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
             result = register[s] * register[t]
-            result = format(result,'064b')    
+            result = format(result,'064b')
             HI = int(result[0:32],2)
             LO = int(result[32:64],2)
 
@@ -262,15 +262,15 @@ def sim(program, deBug):
             result = register[s]
             for i in range(0,5):
                 result = result * register[t]
-                result = format(result,'064b')    
+                result = format(result,'064b')
                 high32 = int(result[0:32],2)
                 low32 = int(result[32:64],2)
                 result = high32 ^ low32
-            result = format(result,'032b')   
+            result = format(result,'032b')
             high16 = int(result[0:16],2)
             low16 = int(result[16:32],2)
             result = high16 ^ low16
-            result = format(result,'016b')   
+            result = format(result,'016b')
             high8 = int(result[0:8],2)
             low8 = int(result[8:16],2)
             result = high8 ^ low8
@@ -292,7 +292,7 @@ def sim(program, deBug):
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000010010': # MFLO
             PC += 4
             d = int(fetch[16:21],2)
-            register[d] =  LO            
+            register[d] =  LO
 
         else:
             # This is not implemented on purpose
@@ -303,12 +303,7 @@ def sim(program, deBug):
         for i in range (0,0x400,4):
             bits32 = hex((mem[i+3]<<24) + (mem[i+2]<<16) + (mem[i+1]<<8) + (mem[i]))
             bit32Mem.append(("%08X" % int(bits32, 16)))
-        #------------------------------------------------------------Simulation Part Done---------------------------------------------------------------------------------------#
 
-         #---------------------------------------------Cycles?----------------------------------------------------------------------------------#
-        print(f"this is fetch: 0x{format(int(fetch,2), '08x')} @ DIC:{DIC-1}")
-
-        #---------------------------------------------For Debug---------------------------------------------------------------------------------#
         if(printDicInput == "y" and (skip == True)):
             print("-----------------------")
             print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
@@ -359,7 +354,7 @@ def sim(program, deBug):
 
     DIC = DIC +1
 
-#---------------------------Final Print Out stats---------------------------------------------------------------------
+    # Finished simulations. Let's print out some stats
     print('***Simulation finished***')
     print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
     print('Dynamic Instr Count: ', DIC)
@@ -382,7 +377,7 @@ def sim(program, deBug):
             outMem.write("\t")
         outMem.write("\n")
         print("\n", end = "")
-        
+
     outMem.close()
 
         # print(hex(mem[i+3]<<24) + hex(mem[i+2]<<16) + hex(mem[i+1]<<8) + hex(mem[i]) )
@@ -399,6 +394,7 @@ def main():
     #----opening files----#
     f = open("output.txt","w+")
     h = open("TestCase24.asm","r")                 # INPUT FILE NAME WITH ASM CODE HERE
+    f = open(".txt","w+")
     #h = open("Hash-MIPS-plus.asm","r")
     #h = open("TestCase.asm","r")
     asm = h.readlines()
@@ -465,6 +461,7 @@ def main():
         elif(line.find(":") != -1): validInstructions.append(line)
 
         i+=1
+
 
 
     print(validInstructions)
