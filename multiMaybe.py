@@ -95,6 +95,10 @@ def sim(program, deBug, CpuType):
         'count'  : 0,
         'length' : 0
     }
+    nextCycle = False
+    multiSkip = 0
+    userStop = 1
+    m_cyclePrint = False
     #-----For previous state------#
     oldRegister = []
     oldMem = []
@@ -115,9 +119,10 @@ def sim(program, deBug, CpuType):
         oldRegister = register[:]
 
         #-----------------------------------------------------------------Begining to simulate instruction-------------------------------------------------------------------#
-        #cycle.update({'length':2})
-        cycle['length'] = 3
-        print(f"printing cycleeeee {cycle}")#.get('length')
+        #-------------setting cycle length----------------#
+        cycle.update({'length':2})
+
+        #print(f"printing cycleeeee {cycle}")#.get('length')
         if fetch[0:6] == '001000': #<--------------------------------#  ADDI
             PC += 4
             s = int(fetch[6:11],2)
@@ -197,7 +202,7 @@ def sim(program, deBug, CpuType):
 
         elif fetch[0:6] == '000101':        #<--------------------------------BNE
             j += 1
-            print(f"this is bne{j}")
+            #mprint(f"this is bne{j}")
             PC += 4
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
@@ -205,8 +210,8 @@ def sim(program, deBug, CpuType):
             # Compare the registers and decide if jumping or not
             if register[s] != register[t]:
                 PC += imm*4
-            print(f"THIS IS BNE Cycle Length = {cycle['length']}")
-            #cycle['length'] = 3
+            #print(f"THIS IS BNE Cycle Length = {cycle['length']}")
+            #cycle['length'] = 6
         
         elif fetch[0:6] == '001101':      #<--------------------------------# ORI
             PC += 4
@@ -235,21 +240,21 @@ def sim(program, deBug, CpuType):
                 mem[offset+1] = (register[t] >> 8) & 0x000000ff # +1
                 mem[offset+0] = register[t] & 0x000000ff  # +0
 
-        elif fetch[0:6] == '101000': #<--------------------------------# SB
-            PC += 4
-            s = int(fetch[6:11],2)
-            t = int(fetch[11:16],2)
-            offset = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
-            offset = offset + register[s]-0x2000
-            mem[offset] = register[t]
+        # elif fetch[0:6] == '101000': #<--------------------------------# SB
+        #     PC += 4
+        #     s = int(fetch[6:11],2)
+        #     t = int(fetch[11:16],2)
+        #     offset = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
+        #     offset = offset + register[s]-0x2000
+        #     mem[offset] = register[t]
 
-        elif fetch[0:6] == '100000': #<--------------------------------# LB
-            PC += 4
-            s = int(fetch[6:11],2)
-            t = int(fetch[11:16],2)
-            offset = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
-            offset = offset + register[s]-0x2000
-            register[t] = mem[offset]         
+        # elif fetch[0:6] == '100000': #<--------------------------------# LB
+        #     PC += 4
+        #     s = int(fetch[6:11],2)
+        #     t = int(fetch[11:16],2)
+        #     offset = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
+        #     offset = offset + register[s]-0x2000
+        #     register[t] = mem[offset]
 
         elif fetch[0:6] == '100011': #<--------------------------------# LW
             PC += 4
@@ -300,27 +305,27 @@ def sim(program, deBug, CpuType):
             HI = int(result[0:32],2)
             LO = int(result[32:64],2)
 
-        elif fetch[0:6] == '000000' and fetch[21:32] == '00000011111': # FOLD 5 TIMES
-            PC += 4
-            s = int(fetch[6:11],2)
-            t = int(fetch[11:16],2)
-            d = int(fetch[16:21],2)
-            result = register[s]
-            for i in range(0,5):
-                result = result * register[t]
-                result = format(result,'064b')    
-                high32 = int(result[0:32],2)
-                low32 = int(result[32:64],2)
-                result = high32 ^ low32
-            result = format(result,'032b')   
-            high16 = int(result[0:16],2)
-            low16 = int(result[16:32],2)
-            result = high16 ^ low16
-            result = format(result,'016b')   
-            high8 = int(result[0:8],2)
-            low8 = int(result[8:16],2)
-            result = high8 ^ low8
-            register[d] = result
+        # elif fetch[0:6] == '000000' and fetch[21:32] == '00000011111': # FOLD 5 TIMES
+        #     PC += 4
+        #     s = int(fetch[6:11],2)
+        #     t = int(fetch[11:16],2)
+        #     d = int(fetch[16:21],2)
+        #     result = register[s]
+        #     for i in range(0,5):
+        #         result = result * register[t]
+        #         result = format(result,'064b')
+        #         high32 = int(result[0:32],2)
+        #         low32 = int(result[32:64],2)
+        #         result = high32 ^ low32
+        #     result = format(result,'032b')
+        #     high16 = int(result[0:16],2)
+        #     low16 = int(result[16:32],2)
+        #     result = high16 ^ low16
+        #     result = format(result,'016b')
+        #     high8 = int(result[0:8],2)
+        #     low8 = int(result[8:16],2)
+        #     result = high8 ^ low8
+        #     register[d] = result
 
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000100110': #<--------------------------------# XOR
             PC += 4
@@ -353,24 +358,51 @@ def sim(program, deBug, CpuType):
 
 
         #-----------------------------------------------------Multi-Cycle---------------------------------------------------------------------------------------------#
-        if(CpuType == "m"):
+        if(CpuType == "m" ) :
             cycleStop = cycle['count'] + cycle['length']
 
+            # if(cycleStop == userStop):
+            #     m_cyclePrint = False
             while(cycle['count'] < cycleStop):
                 cycle['count'] += 1
-                print("-----------------------")
-                print(f"cycleCount:{cycle['count']},       cycleStop:{cycleStop},    cycleLength:{cycle.get('length')}      fetch = {format(int(fetch,2), '08x')},  ")
-                print("PC: {}, HI: {}, LO:{}".format(PC-4, HI, LO))
-                print('Dynamic Instr Count: ', DIC-1)
-                print('Registers: $8 - $23')
-                printRegisters(oldRegister)
-                print('\nMemory contents 0x2000 - 0x2100 ')
-                printMemory(oldMem)
-                print('')
+
+                if(userStop == cycle['count']):
+                    m_cyclePrint = False
+                    userStop == "n"
+
+                if( (m_cyclePrint == True and type(userStop) == int)  or (userStop == "n" and deBug == "y")  or userStop == 1 or userStop == cycle['count'] ):
+                    print("-----------------------")
+                    print(f"cycleCount:{cycle['count']},       cycleStop:{cycleStop},    cycleLength:{cycle.get('length')}      fetch = {format(int(fetch,2), '08x')},  ")
+                    print("PC: {}, HI: {}, LO:{}".format(PC-4, HI, LO))
+                    print('Dynamic Instr Count: ', DIC-1)
+                    print('Registers: $8 - $23')
+                    printRegisters(oldRegister)
+                    print('\nMemory contents 0x2000 - 0x2100 ')
+                    printMemory(oldMem)
+                    print('')
 
 
-                if(deBug == "y"):
+                if( (  (deBug == "y")  and (userStop != "n")  and (m_cyclePrint == False) and (userStop == cycle['count'])  ) or nextCycle == True):
+                    userStop = input("Want to skip to certain cycle? type 'n' for NO, or type cycle number you wish to skip to\n")
+                    if(userStop != "n"):
+                        userStop = int(userStop)
+                        multiSkip = input("Want to print along the way? 'y' for yes\n")
+                        nextCycle = False
+                        if(multiSkip == "y"):
+                            m_cyclePrint = True
+                        else:
+                            m_cyclePrint = False
+
+
+
+                if(userStop == "n" and deBug == "y"):
                     deBug = input("Next Cycle?\n")
+                    if(deBug == "y"):
+                        nextCycle = True
+                    else:
+                        nextCycle = False
+
+
 
 
         #---------------------------------------------For Debug---------------------------------------------------------------------------------#
@@ -417,7 +449,7 @@ def sim(program, deBug, CpuType):
     DIC = DIC +1
 
 #---------------------------Final Print Out stats---------------------------------------------------------------------
-    # print(f"CYCLE COUNT = {cycle['count']}, CYCCLESTOP = {cycleStop},    FETCH = {format(int(fetch,2), '08x')}")
+    print(f"CYCLE COUNT = {cycle['count']}, CYCCLESTOP = {cycleStop},    FETCH = {format(int(fetch,2), '08x')}")
     # while(cycle['count'] < cycleStop):
     #     cycle['count'] += 1
     #     print(f"this is cycleCount:{cycle['count']}, this is cycleStop:{cycleStop}, this is dic:{DIC}, fetch = {format(int(fetch,2), '08x')}, PC = {PC}")
