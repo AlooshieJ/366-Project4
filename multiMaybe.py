@@ -1,4 +1,6 @@
 from math import *
+from decimal import Decimal, ROUND_HALF_UP
+
 #-----allows raw input------#
 try: input = raw_input
 except NameError: pass
@@ -334,6 +336,7 @@ def sim(program, deBug, CpuType):
             d = int(fetch[16:21],2)
             register[d] = register[s] ^ register[t]
             #print(register[d])
+            #cycle.update("length": 5)
 
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000010000':#<--------------------------------#  MFHI
             PC += 4
@@ -380,6 +383,10 @@ def sim(program, deBug, CpuType):
                     print('\nMemory contents 0x2000 - 0x2100 ')
                     printMemory(oldMem)
                     print('')
+
+                    print(f"round:{Decimal(cycle.get('count') / 2).quantize(0, ROUND_HALF_UP)},    DIC:{DIC}")
+                    if( Decimal(cycle.get('count') / 2).quantize(0, ROUND_HALF_UP) !=  DIC ):
+                        answer = input(f"it breaks here doing {format(int(fetch,2), '08x')} @ dic:{DIC}")
 
 
                 if( (  (deBug == "y")  and (userStop != "n")  and (m_cyclePrint == False) and (userStop == cycle['count'])  ) or nextCycle == True):
