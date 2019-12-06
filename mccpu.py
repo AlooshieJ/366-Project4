@@ -279,24 +279,26 @@ class CacheMoney:
                     wayNum = self.lru.get()
                     full = True
 
-            count = 0
-            for ways in self.way:
-                if ways.valid == 0: # if empty
-                        self.Miss += 1
-                        print(f"({self.Count}) ---MISS--- addr: {addr}\n| tag: {tag} way: {count} ")
-                        ways.valid = 1
-                        break
-
-
-
-                else: # not empty then check tag
-                    if ways.tag == tag:
-                        self.Hit += 1
-                        print(f"({self.Count}) ---Hit--- addr: {addr}\n| tag: {tag} way: {count} ")
-                        ways.valid = 1
-                        break
-
-                count += 1
+            print(f"way: {wayNum} full:{full}")
+            #
+            # count = 0
+            # for ways in self.way:
+            #     if ways.valid == 0: # if empty
+            #             self.Miss += 1
+            #             print(f"({self.Count}) ---MISS--- addr: {addr}\n| tag: {tag} way: {count} ")
+            #             ways.valid = 1
+            #             break
+            #
+            #
+            #
+            #     else: # not empty then check tag
+            #         if ways.tag == tag:
+            #             self.Hit += 1
+            #             print(f"({self.Count}) ---Hit--- addr: {addr}\n| tag: {tag} way: {count} ")
+            #             ways.valid = 1
+            #             break
+            #
+            #     count += 1
 
 
                 #print(ways.data)
@@ -313,33 +315,7 @@ class CacheMoney:
 # c. a 2-way set-associative cache, block size of 8 Bytes, 4 sets (b=8; N=2; S=4)
 # d. a 4-way set-associative cache, block size of 8 Bytes, 2 sets (b=8; N=4; S=2)
 
-def printMemory(memory):
-    memory = memory[:]
-    k = 0
-    a = 0
-    # memory[0] = format(memory[0], '08b')
-    # memory[1] = format(memory[1], '08b')
-    # memory[2] = format(memory[2], '08b')
-    # memory[3] = format(memory[3], '08b')
-    print("\nAddress\t\tValue(+0)\tValue(+4)\tValue(+8)\tValue(+c)\tValue(+10)\tValue(+14)\tValue(+18)\tValue(+1c)", end = "")
-    for i in range(0,len(Memory)): # 9
-        print("")
-        address = '0x' + format(a , '08x')
-        print(f"{address}\t", end = "")
-        a += 32
-        for j in range(0,8):
-            memory[k+0] = format(memory[k+0], '08b')
-            memory[k+1] = format(memory[k+1], '08b')
-            memory[k+2] = format(memory[k+2], '08b')
-            memory[k+3] = format(memory[k+3], '08b')
-            byte0 = format(int(str(memory[k + 0]), 2), "02x")
-            byte1 = format(int(str(memory[k + 1]), 2), "02x")
-            byte2 = format(int(str(memory[k + 2]), 2), "02x")
-            byte3 = format(int(str(memory[k + 3]), 2), "02x")
-            print(f"0x{byte3.upper()}{byte2.upper()}{byte1.upper()}{byte0.upper()}", end = "\t")
-            k = k + 4
-        if(k > len(Memory)):
-                break
+
 
 Memory = [ ] # each index is a byte
 cacheName = ""
@@ -384,6 +360,8 @@ cache.printCache()
 #
 for mems in m:
     cache.write_cache(int(mems,16))
+    if debug == 'y':
+        input("")
 cache.printCache()
 cache.output()
 

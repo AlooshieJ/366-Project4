@@ -27,6 +27,11 @@ class fifo:
             self.index.popitem(last= False)
         self.index[key] = value
 
+    def leastUsed(self):
+
+        tmp = self.index.keys()
+
+        return tmp[0]
 
 
 
@@ -40,16 +45,24 @@ print(lru.index)
 
 #print(lru.get(1))
 print(lru.index[0])
-#print(lru.get(2))
+print(lru.get(2))
 #lru.index.pop()
 print(lru.index)
 
 for i in range(5):
     if lru.index[i] == 0:
+
         print("empty, key :",i)
 
-print(lru.index)
+print(lru.leastUsed())
 
+E1 = (40 / 50) * 100
+E2 = (23/34) * 100
+E3 = (35/40) * 100
+Hw = 95.5
+# final = replace lowest exam
+grade = (.3 * E1) + (.3 * E2 )+ (.3 * E3) + (.1 * Hw)
+print(f"grade {grade}")
 #
 # class fifo:
 #     def __init__(self, size):
