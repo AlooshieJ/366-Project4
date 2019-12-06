@@ -159,7 +159,7 @@ class Block:
 
 class CacheMoney:
 
-    def __init__(self, option, addr,total_blocks,bytes):
+    def __init__(self, option,total_blocks,bytes):
 
         self.blk_size = bytes # input
         self.blk_offset = 0
@@ -245,7 +245,8 @@ class CacheMoney:
                 else: # not the same tag , overwite set
                     self.Miss += 1
                     print(f"Miss with addr {hex(int(addr,2))}\n in blk info for set {set}: tag: {self.set[int(set,2)].tag} Valid: {self.set[int(set,2)].valid}")
-                    print(f"access tag: {tag} updating blk with Memory FIX THIS!!!!")
+                    print(f"--FULL-- access tag: {tag} ",end=" ")
+                    print(f"loading blk fom Mem  [0x{format(int(strtBlk, 2), '04x')}] - M[0x{format(int(endBlk, 2), '04x')}] into set {set}  ")
 
                     # add swap with memory
 
@@ -256,7 +257,8 @@ class CacheMoney:
 
     def outputDM(self):
 
-        print(f"Hits: {self.Hit} Miss: {self.Miss} | total memory Accesses: {self.Count} Last used set: {self.leastUsed}")
+        print(f"| total memory Accesses: {self.Count} Last used set: {self.leastUsed}\n| Hits: {self.Hit} Miss: {self.Miss}")
+        print(f"| Hit %  {( self.Hit / (self.Hit + self.Miss) )* 100}")
 
 
 # a. a directly-mapped cache, block size of 16 Bytes, a total of 4 blocks (b=16; N=1; S=4)
@@ -293,7 +295,25 @@ def printMemory(memory):
                 break
 
 Memory = [ ] # each index is a byte
+cacheName = ""
+blocks = 0
+bytesize = 0
 print("$$$ Cash $$$")
+print(f" Welcome to DataCache sim ! how would you like your $CACHE$?")
+cacheType = input("(1) for Direct Memory (2) Set-Associative (3) Fully Associative ")
+
+if cacheType == '1':
+    cacheName = 'DM'
+    blocks = int(input( " How many Blocks? "))
+    bytesize  = int( input( " How many Bytes per block (size in B)?"))
+    #cache = CacheMoney('DM',blocks,bytesize)
+
+#elif cacheType == 2:
+#elif cacheType == 3:
+
+
+debug = input("would you like to debug? y/n")
+
 for i in range (1024):
     Memory.append(i)
 
@@ -307,7 +327,7 @@ for line in addrs:
     line = line.split(',')
     m.append(line[2][1:-3])
 print(m)
-cache = CacheMoney('DM',0x2000, 4, 16) # type of cache , mem? , sets, bytes
+cache = CacheMoney(cacheName, blocks,bytesize) # type of cache , mem? , sets, bytes
 cache.printCache()
 
 for mems in m:
