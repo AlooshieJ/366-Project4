@@ -449,7 +449,7 @@ def sim(program, deBug, CpuType):
     DIC = DIC +1
 
 #---------------------------Final Print Out stats---------------------------------------------------------------------
-    print(f"CYCLE COUNT = {cycle['count']}, CYCCLESTOP = {cycleStop},    FETCH = {format(int(fetch,2), '08x')}")
+    #print(f"CYCLE COUNT = {cycle['count']}, CYCCLESTOP = {cycleStop},    FETCH = {format(int(fetch,2), '08x')}")
     # while(cycle['count'] < cycleStop):
     #     cycle['count'] += 1
     #     print(f"this is cycleCount:{cycle['count']}, this is cycleStop:{cycleStop}, this is dic:{DIC}, fetch = {format(int(fetch,2), '08x')}, PC = {PC}")
