@@ -1,5 +1,5 @@
 from math import *
-
+import collections
 
 def bin_digits(n, bits):
     s = bin(n & int("1"*bits, 2))[2:]
@@ -14,25 +14,6 @@ def minBits(dec):
         numBits = int(log(abs(dec), 2) + 1 )
     return numBits
 
-class mem:
-    def __init__(self, address, b3, b2, b1, b0):
-
-        self.addr = address
-        self.b0 = b0  # addr + 0
-        self.b1 = b1  # addr + 1
-        self.b2 = b2  # addr + 2
-        self.b3 = b3  # addr + 3
-        self.data = str(self.b3) + str(self.b2) + str(self.b1) + str(self.b0)
-
-    def print_mem(self):  # b3 = msb , b0 = lsb
-        print(" ", hex(self.addr), end=":  ")
-        print("{0:02x}".format(self.b3), end="")
-        print("{0:02x}".format(self.b2), end="")
-        print("{0:02x}".format(self.b1), end="")
-        print("{0:02x}".format(self.b0), end="")
-
-        # print(hex(self.addr) + str(" ") + b3 + b2+ b1+ b0 + str(" | ")) #, end=" ")
-#
 # # def fetch( instruction , register ,memory ):
 # #     # check insturction
 # #     # update dictionary
@@ -58,51 +39,32 @@ class mem:
 # #
 #
 
-
-
 class fifo:
     def __init__(self, size):
 
-        self.index = []
-        self.size = size
+        self.index = collections.OrderedDict()
+        self.capacity = size
 
         #for i in range(size): # creating w/ all size = 0
          #   self.index.append(i)
 
+    def get(self,key):
+        if key in self.index:
+            value = self.index[key]
+            # store value , for removing
+            del self.index[key]
+            #now add it back, already sorting due to structure
+            self.index[key] = value
+            return value
+        else:
+            return -1
 
-
-    def push(self,value):
-
-        self.index.append(value)
-
-
-    # def order(self,setb):
-    #
-    #     self.index.
-
-    def top (self): # my pop return  what it pops out
-        return self.index[0]
-        #
-        # if len(self.index) > 0:
-        #     tmp = self.index[0]
-        #     self.index = self.index[1:]
-        #     self.index.append(tmp)
-        #     #self.index = self.index[1:]
-        #     return tmp
-        #
-        # else:
-        #
-        #     print("fifo is empty")
-
-   # def leastUsedSwap(self):
-    def print(self):
-        print(f"fetch: {self.top() }")
-
-
-
-
-
-
+    def set(self,key , value): # set the value of dictionary, given a key
+        if key in self.index:
+            del self.index[key]
+        elif len(self.index) >= self.capacity:
+            self.index.popitem(last= False)
+        self.index[key] = value
 
 # note, doesnt not work with negatives
     def writeWordMem(self, value):
@@ -124,6 +86,7 @@ class fifo:
 
 
 class Block:
+    #data = []
     def __init__(self, size):
 
         self.valid = 0 # would have to check somehow
@@ -159,12 +122,13 @@ class Block:
 
 class CacheMoney:
 
-    def __init__(self, option, addr,total_blocks,bytes):
+    def __init__(self, option,total_blocks,bytes):
 
         self.blk_size = bytes # input
+        self.totalblks = total_blocks
         self.blk_offset = 0
         # self.blks = []
-        self.totalblks = total_blocks
+
         self.memspace = 0 # ???
         self.type = option
         self.setNum = 0
@@ -173,7 +137,7 @@ class CacheMoney:
         self.Hit = 0
         self.Miss = 0
         self.Count = 0
-        self.leastUsed = fifo(total_blocks) # list size of total blocks, should incorporate a ways check too
+        self.lru = fifo(total_blocks) # list size of total blocks, should incorporate a ways check too
 
 
         if self.type == 'DM':
@@ -187,21 +151,41 @@ class CacheMoney:
             for i in range(self.totalblks): # creating 4 blocks
                 self.set.append(Block(self.blk_size ))
 
+        # b. a fully-associated cache, block size of 8 Bytes, a total of 8 blocks (b=8; N=8; S=1)
 
-        # if type == 'SA':
+        elif self.type == "FA":
+            print(f"Creating Fully Associative Cash| total blocks: {self.totalblks} block size: {self.blk_size}")
+
+            self.blk_offset = minBits(self.blk_size - 1)
+            self.ways = self.totalblks
+            self.tagsize = 32 - self.blk_offset
+            print(f"tag size: {self.tagsize} total ways: {self.ways} in blk off: {self.blk_offset}")
+
+            for i in range(self.totalblks):
+                self.way.append(Block(self.blk_size))
+
 
     def printCache (self):
         if self.type == 'DM':
 
             for i in range(self.totalblks): # these are sets..
 
-                print(f"set: {bin_digits(i,self.setNum)} {cache.set[i].data}", end=" ")
-                print(f"tag : {cache.set[i].tag} Valid: {cache.set[i].valid} ")
+                print(f"set: {bin_digits(i,self.setNum)} {self.set[i].data}", end=" ")
+                print(f"tag : {self.set[i].tag} Valid: {self.set[i].valid} ")
+                # print(f" used : {cache.set} times")
         print()
 
-            # print("printing set:")
-            # for i in self.set:
-            #     print( i)
+        if self.type == "FA":
+
+            for i in range(self.totalblks):  # these are sets..
+                print(f"way: {i} {cache.way[i].data}", end=" ")
+                print(f"tag : {cache.way[i].tag} Valid: {cache.way[i].valid} ")
+            for i in range(self.totalblks):
+                self.lru.index[i] = 0
+
+
+
+
 # addr[-self.blk_offset:]
     def write_cache(self,addr, Memory =None): # keeping track of blk addressing
 
@@ -217,7 +201,7 @@ class CacheMoney:
             off = addr[-self.blk_offset:]
             strtBlk = addr[:self.tagsize + self.setNum] # memory range
             endBlk =  strtBlk[:]
-            self.leastUsed = int(set,2)
+            #self.leastUsed = int(set,2)
             for i in range(self.blk_offset):
                 strtBlk += '0'
                 endBlk += '1'
@@ -244,19 +228,84 @@ class CacheMoney:
 
                 else: # not the same tag , overwite set
                     self.Miss += 1
-                    print(f"Miss with addr {hex(int(addr,2))}\nin blk info for set {set}: tag: {self.set[int(set,2)].tag} Valid: {self.set[int(set,2)].valid}")
-                    print(f"access tag: {tag} updating blk with Memory FIX THIS!!!!")
+
+                    print(f"Miss with addr {hex(int(addr,2))}\n in blk info for set {set}: tag: {self.set[int(set,2)].tag} Valid: {self.set[int(set,2)].valid}")
+                    print(f"--FULL-- access tag: {tag} ",end=" ")
+                    print(f"loading blk fom Mem  [0x{format(int(strtBlk, 2), '04x')}] - M[0x{format(int(endBlk, 2), '04x')}] into set {set}  ")
 
                     # add swap with memory
 
                     self.set[int(set, 2)].tag = tag
 
-            print(f"updated blk | set: {i}  tag  : {self.set[i].tag} valid: {self.set[i].valid}")
+            print(f"updated blk | set: {set}  tag  : {self.set[i].tag} valid: {self.set[i].valid}")
             print("")
 
-    def outputDM(self):
 
-        print(f"Hits: {self.Hit} Miss: {self.Miss} | total memory Accesses: {self.Count} Last used set: {self.leastUsed}")
+        elif self.type == "FA":
+            self.Count += 1
+            addr = bin_digits(addr, 32)
+            tag = addr[:self.tagsize]
+
+            tag = hex(int(tag, 2))
+
+            off = addr[-self.blk_offset:]
+            strtBlk = addr[:self.tagsize ]  # memory range
+            endBlk = strtBlk[:]
+            for i in range(self.blk_offset):
+                strtBlk += '0'
+                endBlk += '1'
+
+            print(f"({self.Count}) addr: {hex(int(addr,2))} \ntag: {tag}  off: {off} ")
+           # print(f"M  [0x{format(int(strtBlk, 2), '04x')}] - M[0x{format(int(endBlk, 2), '04x')}] into way [ ]  ")
+            """"
+            # for each way - > loop through lru , check for empty, if full check tag of last used
+            # check valid
+                if valid , then check tag
+                    if tag match 
+                        hit , update lru
+                        
+                    else miss 
+                
+                
+                if not valid, then empty , load into block instant miss, update lru
+            #
+            """
+            wayNum = 0
+            full = False
+            for key in self.lru.index:
+                if self.lru.index[key] == 0: # empty
+                    wayNum = key
+                else:
+                    wayNum = self.lru.get()
+                    full = True
+
+            count = 0
+            for ways in self.way:
+                if ways.valid == 0: # if empty
+                        self.Miss += 1
+                        print(f"({self.Count}) ---MISS--- addr: {addr}\n| tag: {tag} way: {count} ")
+                        ways.valid = 1
+                        break
+
+
+
+                else: # not empty then check tag
+                    if ways.tag == tag:
+                        self.Hit += 1
+                        print(f"({self.Count}) ---Hit--- addr: {addr}\n| tag: {tag} way: {count} ")
+                        ways.valid = 1
+                        break
+
+                count += 1
+
+
+                #print(ways.data)
+
+
+    def output(self):
+
+        print(f"| total memory Accesses: {self.Count} Last used set: {self.lru.index}\n| Hits: {self.Hit} Miss: {self.Miss}")
+        print(f"| Hit %  {( self.Hit / (self.Hit + self.Miss) )* 100}")
 
 
 # a. a directly-mapped cache, block size of 16 Bytes, a total of 4 blocks (b=16; N=1; S=4)
@@ -293,7 +342,29 @@ def printMemory(memory):
                 break
 
 Memory = [ ] # each index is a byte
+cacheName = ""
+blocks = 0
+bytesize = 0
 print("$$$ Cash $$$")
+print(f" Welcome to DataCache sim ! how would you like your $CACHE$?")
+cacheType = input("(1) for Direct Memory (2) Set-Associative (3) Fully Associative ")
+
+if cacheType == '1':
+    cacheName = 'DM'
+    blocks = int(input( " How many Blocks? "))
+    bytesize  = int( input( " How many Bytes per block (size in B)?"))
+    #cache = CacheMoney('DM',blocks,bytesize)
+
+elif cacheType == '3':
+    cacheName = 'FA'
+    blocks = int(input(" How many Blocks? "))
+    bytesize = int(input(" How many Bytes per block (size in B)?"))
+
+#elif cacheType == 3:
+
+
+debug = input("would you like to debug? y/n")
+
 for i in range (1024):
     Memory.append(i)
 
@@ -307,16 +378,17 @@ for line in addrs:
     line = line.split(',')
     m.append(line[2][1:-3])
 #print(m)
-cache = CacheMoney('DM',0x2000, 4, 16) # type of cache , mem? , sets, bytes
-cache.printCache()
 
+cache = CacheMoney(cacheName, blocks,bytesize) # type of cache , mem? , sets, bytes
+cache.printCache()
+#
 for mems in m:
     cache.write_cache(int(mems,16))
 cache.printCache()
-cache.outputDM()
+cache.output()
 
 #printMemory(Memory)
-print(Memory)
+#print(Memory)
 #print(cache.set[3].read_byte('01'))
 
 # pq = fifo(4)
