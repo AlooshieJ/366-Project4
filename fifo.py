@@ -27,11 +27,24 @@ class fifo:
             self.index.popitem(last= False)
         self.index[key] = value
 
-    def leastUsed(self):
+    def front(self): # does not update the data structure
+        front = [*self.index.keys()][0] # allows us to acces first index key , aka least used key
+        #print(f" in func{tmp} type: {ty} {tmp2}")
+        return front
 
-        tmp = self.index.keys()
+    def checkWay(self):
+        occupied = []
+        empty = []
+        for key in self.index:
+            if self.index[key] == 0: # empty
+                empty.append(key)
+            else:   # occupied
+                empty.append(key)
+        return [empty,occupied]
 
-        return tmp[0]
+
+
+
 
 
 
@@ -54,7 +67,13 @@ for i in range(5):
 
         print("empty, key :",i)
 
-print(lru.leastUsed())
+
+for i in range (5):
+    lru.set(i,20)
+    print(lru.index)
+
+    print(f" last used: {lru.front()}")
+
 
 E1 = (40 / 50) * 100
 E2 = (23/34) * 100

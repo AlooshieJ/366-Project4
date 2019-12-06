@@ -66,22 +66,23 @@ class fifo:
             self.index.popitem(last= False)
         self.index[key] = value
 
-# note, doesnt not work with negatives
-    def writeWordMem(self, value):
+    def front(self):
+        front = [*self.index.keys()][0] # allows us to acces first index key , aka least used key
+        #print(f" in func{tmp} type: {ty} {tmp2}")
+        return front
 
-        tmp = str(format(int(value), '08x'))
-
-        # 0|0|0|0|0|0|0|0
-        # 0,1,2,3,4,5,6,7
-        # -8,7,6,5,4,3,2,1
-        # print(tmp)
-        # print("infunc: ",tmp[-2:], tmp[-4:-2], tmp[-6:-4],tmp[-8:-6] )
-        self.b0 = int(tmp[-2:],   16)
-        self.b1 = int(tmp[-4:-2], 16)
-        self.b2 = int(tmp[-6:-4], 16)
-        self.b3 = int(tmp[-8:-6], 16)
-        self.data = str(self.b3) + str(self.b2) + str(self.b1) + str(self.b0)
-
+    def checkWay(self):
+        occupied = []
+        empty = []
+        for key in self.index:
+            print(f"checking way: {key}",end = " ")
+            if self.index[key] == 0: # empty
+                empty.append(key)
+                print("---Empty")
+            else:   # occupied
+                print("---Occupied")
+                empty.append(key)
+        return [empty,occupied]
 
 
 
@@ -92,7 +93,7 @@ class Block:
         self.valid = 0 # would have to check somehow
         self.tag = 0x0 # math to addr
         self. size = size
-        self.usedCount = 0
+        self.Count = 0
 
         self.data  = []
 
@@ -270,16 +271,28 @@ class CacheMoney:
                 if not valid, then empty , load into block instant miss, update lru
             #
             """
-            wayNum = 0
-            full = False
-            for key in self.lru.index:
-                if self.lru.index[key] == 0: # empty
-                    wayNum = key
-                else:
-                    wayNum = self.lru.get()
-                    full = True
+            # wayNum = 0
+            # full = False
+            # for key in self.lru.index:
+            #     if self.lru.index[key] == 0: # empty
+            #         wayNum = key
+            #         print(f"checking set {wayNum} --Empty ")
+            #
+            #         #break
+            #     else:
+            #         print(f"checking set {wayNum} -- Occupied")
+            #         full = True
+            OCFUL = self.lru.checkWay()
+            empty = OCFUL[0]
+            occupied = OCFUL[1]
+            print(empty,occupied)
 
-            print(f"way: {wayNum} full:{full}")
+
+            #print(f"way: {wayNum} full:{full}")
+            self.way[wayNum].valid = 1
+            self.way[wayNum].tag = tag
+            self.lru.set(wayNum,1)
+            print(self.lru.index)
             #
             # count = 0
             # for ways in self.way:
@@ -361,7 +374,7 @@ cache.printCache()
 for mems in m:
     cache.write_cache(int(mems,16))
     if debug == 'y':
-        input("")
+        input(" press enter to step")
 cache.printCache()
 cache.output()
 
