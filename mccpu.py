@@ -177,7 +177,7 @@ class CacheMoney:
 
 
         if self.type == 'DM':
-            print(f"Creating Direct Map Cash | total blocks: {self.totalblks}  block size: {self.blk_size}")
+            print(f"Creating Direct Map Cash | total blocks: {self.totalblks}  block size: {self.blk_size} B")
 
             self.blk_offset = minBits(self.blk_size -1)
             self.setNum =     minBits(self.totalblks -1)
@@ -244,7 +244,7 @@ class CacheMoney:
 
                 else: # not the same tag , overwite set
                     self.Miss += 1
-                    print(f"Miss with addr {hex(int(addr,2))}\n in blk info for set {set}: tag: {self.set[int(set,2)].tag} Valid: {self.set[int(set,2)].valid}")
+                    print(f"Miss with addr {hex(int(addr,2))}\nin blk info for set {set}: tag: {self.set[int(set,2)].tag} Valid: {self.set[int(set,2)].valid}")
                     print(f"access tag: {tag} updating blk with Memory FIX THIS!!!!")
 
                     # add swap with memory
@@ -306,7 +306,7 @@ for x in f.readlines():
 for line in addrs:
     line = line.split(',')
     m.append(line[2][1:-3])
-print(m)
+#print(m)
 cache = CacheMoney('DM',0x2000, 4, 16) # type of cache , mem? , sets, bytes
 cache.printCache()
 
