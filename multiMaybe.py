@@ -76,7 +76,7 @@ def printMemory(memory):
     print('')
 
 
-#-----SIM-----#
+#------------------------SIM---------------#
 def sim(program, deBug, CpuType):
     finished = False      # Is the simulation finished? 
     PC = 0                # Program Counter
@@ -95,9 +95,11 @@ def sim(program, deBug, CpuType):
         'count'  : 0,
         'length' : 0
     }
+    #-----For previous state------#
     oldRegister = []
     oldMem = []
-
+    j=0
+    #----------------------------------------------------SIMULATOR LOOP-----------------------------------------------------------------------#
     while(not(finished)):
         if PC == len(program) :
             finished = True
@@ -107,26 +109,16 @@ def sim(program, deBug, CpuType):
         register[0] = 0 # keep $0 = 0
 
 
-        #--------------------------------------------------Saving pre-simulator state--------------------------------------------#
-        # if(CpuType == "m"):
-        #     oldMem = []*0x400
-        #     for i in range (0,0x400,4):
-        #         bits = hex((mem[i+3]<<24) + (mem[i+2]<<16) + (mem[i+1]<<8) + (mem[i]))
-        #         oldMem.append(("%08X" % int(bits, 16)))
-        # oldRegister = [0] * len(register)
+        #-----------Saving pre-simulator state------------------#
+
         oldMem = mem[:]
         oldRegister = register[:]
-        # for i in register:
-        #     oldRegister[i] = register[i]
-        #print(f"Current PreState, DIC:{DIC} currentRegisters = {oldRegister}\n ")
 
-
-
-        #---------------------------------------Begining to simulate instruction---------------------------------------------------------------------------------------#
+        #-----------------------------------------------------------------Begining to simulate instruction-------------------------------------------------------------------#
         #cycle.update({'length':2})
-        cycle['length'] = 2
+        cycle['length'] = 3
         print(f"printing cycleeeee {cycle}")#.get('length')
-        if fetch[0:6] == '001000': # ADDI
+        if fetch[0:6] == '001000': #<--------------------------------#  ADDI
             PC += 4
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
@@ -139,7 +131,7 @@ def sim(program, deBug, CpuType):
             '''
 
 
-        elif fetch[0:6] == '000000' and fetch[21:32] == '00000100001': # ADDU
+        elif fetch[0:6] == '000000' and fetch[21:32] == '00000100001':#<--------------------------------#  ADDU
             PC += 4
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
@@ -158,14 +150,14 @@ def sim(program, deBug, CpuType):
                 temp = int(temp,2)
             register[d] = temp
 
-        elif fetch[0:6] == '000000' and fetch[21:32] == '00000100000': # ADD
+        elif fetch[0:6] == '000000' and fetch[21:32] == '00000100000':#<--------------------------------# ADD
             PC += 4
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
             d = int(fetch[16:21],2)
             register[d] = register[s] + register[t]
 
-        elif fetch[0:6] == '000000' and fetch[21:32] == '00000100010': # SUB
+        elif fetch[0:6] == '000000' and fetch[21:32] == '00000100010': #<--------------------------------#  SUB
             PC += 4
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
@@ -173,14 +165,14 @@ def sim(program, deBug, CpuType):
             register[d] = register[s] - register[t]
 
 
-        elif fetch[0:6] == '000000' and fetch[26:32] == '000010': # SRL
+        elif fetch[0:6] == '000000' and fetch[26:32] == '000010':#<--------------------------------#  SRL
             PC += 4
             t = int(fetch[11:16],2)
             d = int(fetch[16:21],2)
             h = int(fetch[21:26],2)
             register[d] = register[t] >> h
 
-        elif fetch[0:6] == '000000' and fetch[26:32] == '000000': # SLL
+        elif fetch[0:6] == '000000' and fetch[26:32] == '000000':#<--------------------------------#  SLL
             PC += 4
             t = int(fetch[11:16],2)
             d = int(fetch[16:21],2)
@@ -194,7 +186,7 @@ def sim(program, deBug, CpuType):
                 t = int(t, 2)
             register[d] = t
             
-        elif fetch[0:6] == '000100':                           # BEQ
+        elif fetch[0:6] == '000100':  #<--------------------------------#    # BEQ
             PC += 4
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
@@ -203,7 +195,9 @@ def sim(program, deBug, CpuType):
             if register[s] == register[t]:
                 PC += imm*4
 
-        elif fetch[0:6] == '000101':                            # BNE
+        elif fetch[0:6] == '000101':        #<--------------------------------BNE
+            j += 1
+            print(f"this is bne{j}")
             PC += 4
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
@@ -212,23 +206,23 @@ def sim(program, deBug, CpuType):
             if register[s] != register[t]:
                 PC += imm*4
             print(f"THIS IS BNE Cycle Length = {cycle['length']}")
-            cycle['length'] = 3
+            #cycle['length'] = 3
         
-        elif fetch[0:6] == '001101':                            # ORI
+        elif fetch[0:6] == '001101':      #<--------------------------------# ORI
             PC += 4
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
             imm = int(fetch[16:],2)
             register[t] = register[s] | imm
 
-        elif fetch[0:6] == '001100':                             # ANDI
+        elif fetch[0:6] == '001100':    #<--------------------------------# ANDI
             PC += 4
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
             imm = int(fetch[16:],2)
             register[t] = register[s] & imm            
 
-        elif fetch[0:6] == '101011':  # SW
+        elif fetch[0:6] == '101011':    #<--------------------------------# SW
             PC += 4
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
@@ -241,7 +235,7 @@ def sim(program, deBug, CpuType):
                 mem[offset+1] = (register[t] >> 8) & 0x000000ff # +1
                 mem[offset+0] = register[t] & 0x000000ff  # +0
 
-        elif fetch[0:6] == '101000':  # SB
+        elif fetch[0:6] == '101000': #<--------------------------------# SB
             PC += 4
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
@@ -249,7 +243,7 @@ def sim(program, deBug, CpuType):
             offset = offset + register[s]-0x2000
             mem[offset] = register[t]
 
-        elif fetch[0:6] == '100000':  # LB
+        elif fetch[0:6] == '100000': #<--------------------------------# LB
             PC += 4
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
@@ -257,7 +251,7 @@ def sim(program, deBug, CpuType):
             offset = offset + register[s]-0x2000
             register[t] = mem[offset]         
 
-        elif fetch[0:6] == '100011':  # LW
+        elif fetch[0:6] == '100011': #<--------------------------------# LW
             PC += 4
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
@@ -280,7 +274,7 @@ def sim(program, deBug, CpuType):
                 loaded = int(loaded,2)
             register[t] = loaded
 
-        elif fetch[0:6] == '000000' and fetch[21:32] == '00000101010': # SLT
+        elif fetch[0:6] == '000000' and fetch[21:32] == '00000101010':#<--------------------------------#  SLT
             PC += 4
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
@@ -290,7 +284,7 @@ def sim(program, deBug, CpuType):
             else:
                 register[d] = 0
 
-        elif fetch[0:6] == '001111': # LUI
+        elif fetch[0:6] == '001111': #<--------------------------------#  LUI
             PC += 4
             t = int(fetch[11:16],2)
             imm = int(fetch[16:],2)
@@ -328,7 +322,7 @@ def sim(program, deBug, CpuType):
             result = high8 ^ low8
             register[d] = result
 
-        elif fetch[0:6] == '000000' and fetch[21:32] == '00000100110': # XOR
+        elif fetch[0:6] == '000000' and fetch[21:32] == '00000100110': #<--------------------------------# XOR
             PC += 4
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
@@ -336,12 +330,12 @@ def sim(program, deBug, CpuType):
             register[d] = register[s] ^ register[t]
             #print(register[d])
 
-        elif fetch[0:6] == '000000' and fetch[21:32] == '00000010000': # MFHI
+        elif fetch[0:6] == '000000' and fetch[21:32] == '00000010000':#<--------------------------------#  MFHI
             PC += 4
             d = int(fetch[16:21],2)
             register[d] = HI
 
-        elif fetch[0:6] == '000000' and fetch[21:32] == '00000010010': # MFLO
+        elif fetch[0:6] == '000000' and fetch[21:32] == '00000010010':#<--------------------------------#  MFLO
             PC += 4
             d = int(fetch[16:21],2)
             register[d] =  LO            
