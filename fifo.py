@@ -69,11 +69,10 @@ for i in range(5):
 
 
 for i in range (5):
-    lru.set(i,20)
+    lru.set(i,i)
     print(lru.index)
 
     print(f" last used: {lru.front()}")
-
 
 E1 = (40 / 50) * 100
 E2 = (23/34) * 100

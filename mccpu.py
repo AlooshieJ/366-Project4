@@ -74,15 +74,34 @@ class fifo:
     def checkWay(self):
         occupied = []
         empty = []
-        for key in self.index:
-            print(f"checking way: {key}",end = " ")
-            if self.index[key] == 0: # empty
+        # for key in self.index:
+        #     print(f"checking way: {key}",end = " ")
+        #     if self.index[key] == 0: # empty
+        #         empty.append(key)
+        #         print("---Empty")
+        #     else:   # occupied
+        #         print("---Occupied")
+        #         empty.append(key)
+        # return [empty,occupied]
+        key = 0
+        while key < self.capacity:
+            print(f"checking way: {key}", end=" ")
+            if self.index[key] == 0:  # empty
                 empty.append(key)
                 print("---Empty")
-            else:   # occupied
+                break
+                #return key
+            else:  # occupied
                 print("---Occupied")
-                empty.append(key)
-        return [empty,occupied]
+                occupied.append(key)
+
+            key += 1
+
+        print( empty, occupied)
+        if len(occupied) < self.capacity:
+            return key , occupied
+        else: return "full" #, occupied
+
 
 
 
@@ -282,17 +301,36 @@ class CacheMoney:
             #     else:
             #         print(f"checking set {wayNum} -- Occupied")
             #         full = True
-            OCFUL = self.lru.checkWay()
-            empty = OCFUL[0]
-            occupied = OCFUL[1]
-            print(empty,occupied)
+            wayNum = self.lru.checkWay() # returns key to empty way , and list of occupied ways
+            #empty = OCFUL[0]
+            #occupied = OCFUL[1]
+            #print(empty,occupied)
 
+            print ( wayNum)
+            if wayNum[0] != "full": # update tag / valid bit, also need to check tag given a key
+                if len(wayNum[1])  == 0: #all are empty, miss
+                    self.way[wayNum[0]].valid = 1
+                    self.way[wayNum[0]].tag = tag
+                    self.lru.set(wayNum[0],1)
+                else: # all are not empty, loop through occupied, chck tag
+                    for inway in wayNum[1]: # its not full , but occupied, check tag
+                        if self.way[inway].valid == tag:
+                            #self.way[inway].valid = 1
+                            self.way[inway].tag = tag
+                            self.lru.set(inway,1)
+                        else: # if not the same tag, then update empty index
+                            print('not matching tag, fill empty slot')
+                #
+                # self.way[wayNum[0]].valid = 1
+                # self.way[wayNum[0]].tag = tag
+                # self.lru.set(wayNum[0],1)
+            else: # all sets a full,
+                print(f"FULL.... what now")
 
-            #print(f"way: {wayNum} full:{full}")
-            self.way[wayNum].valid = 1
-            self.way[wayNum].tag = tag
-            self.lru.set(wayNum,1)
             print(self.lru.index)
+            self.printCache()
+
+
             #
             # count = 0
             # for ways in self.way:
