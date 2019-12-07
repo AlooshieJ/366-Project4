@@ -1,5 +1,6 @@
 from math import *
 from decimal import Decimal, ROUND_HALF_UP
+import copy
 
 #-----allows raw input------#
 try: input = raw_input
@@ -77,6 +78,25 @@ def printMemory(memory):
             k = k + 4
     print('')
 
+class State:
+
+    def __init__(self, memory, registers, instruction, stateNumber):
+        self.mem = memory[:]
+        self.reg = registers[:]
+        self.inst = instruction
+        self.stateNum = stateNumber
+
+    def printState(self):
+        print("-----------------------")
+        print(f"During instruction: 0x{self.inst}'s cycles , State:{self.stateNum}")
+        print('Registers: $8 - $23')
+        printRegisters(self.reg)
+        print('\nMemory contents 0x2000 - 0x2100 ', end = '')
+        printMemory(self.mem)
+        print("-----------------------")
+        print('')
+
+
 
 #------------------------SIM---------------#
 def sim(program, deBug, CpuType):
@@ -101,27 +121,37 @@ def sim(program, deBug, CpuType):
     multiSkip = 0
     userStop = 1
     m_cyclePrint = False
+
+
     #-----For previous state------#
     oldRegister = []
     oldMem = []
     j=0
+    states = []
+
+
+
     #----------------------------------------------------SIMULATOR LOOP-----------------------------------------------------------------------#
     while(not(finished)):
         if PC == len(program) :
             finished = True
             break
         fetch = program[PC]
-        DIC += 1
         register[0] = 0 # keep $0 = 0
+
 
 
         #-----------Saving pre-simulator state------------------#
 
         oldMem = mem[:]
         oldRegister = register[:]
+        currentState = State(mem, register, format(int(fetch,2), '08x'),DIC)
+        states.append(currentState)
+
+
 
         #-----------------------------------------------------------------Begining to simulate instruction-------------------------------------------------------------------#
-        #-------------setting cycle length----------------#
+                                       #-------------setting cycle length----------------#
         cycle.update({'length':2})
 
         #print(f"printing cycleeeee {cycle}")#.get('length')
@@ -242,22 +272,6 @@ def sim(program, deBug, CpuType):
                 mem[offset+1] = (register[t] >> 8) & 0x000000ff # +1
                 mem[offset+0] = register[t] & 0x000000ff  # +0
 
-        # elif fetch[0:6] == '101000': #<--------------------------------# SB
-        #     PC += 4
-        #     s = int(fetch[6:11],2)
-        #     t = int(fetch[11:16],2)
-        #     offset = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
-        #     offset = offset + register[s]-0x2000
-        #     mem[offset] = register[t]
-
-        # elif fetch[0:6] == '100000': #<--------------------------------# LB
-        #     PC += 4
-        #     s = int(fetch[6:11],2)
-        #     t = int(fetch[11:16],2)
-        #     offset = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
-        #     offset = offset + register[s]-0x2000
-        #     register[t] = mem[offset]
-
         elif fetch[0:6] == '100011': #<--------------------------------# LW
             PC += 4
             s = int(fetch[6:11],2)
@@ -307,28 +321,6 @@ def sim(program, deBug, CpuType):
             HI = int(result[0:32],2)
             LO = int(result[32:64],2)
 
-        # elif fetch[0:6] == '000000' and fetch[21:32] == '00000011111': # FOLD 5 TIMES
-        #     PC += 4
-        #     s = int(fetch[6:11],2)
-        #     t = int(fetch[11:16],2)
-        #     d = int(fetch[16:21],2)
-        #     result = register[s]
-        #     for i in range(0,5):
-        #         result = result * register[t]
-        #         result = format(result,'064b')
-        #         high32 = int(result[0:32],2)
-        #         low32 = int(result[32:64],2)
-        #         result = high32 ^ low32
-        #     result = format(result,'032b')
-        #     high16 = int(result[0:16],2)
-        #     low16 = int(result[16:32],2)
-        #     result = high16 ^ low16
-        #     result = format(result,'016b')
-        #     high8 = int(result[0:8],2)
-        #     low8 = int(result[8:16],2)
-        #     result = high8 ^ low8
-        #     register[d] = result
-
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000100110': #<--------------------------------# XOR
             PC += 4
             s = int(fetch[6:11],2)
@@ -357,6 +349,8 @@ def sim(program, deBug, CpuType):
         for i in range (0,0x400,4):
             bits = hex((mem[i+3]<<24) + (mem[i+2]<<16) + (mem[i+1]<<8) + (mem[i]))
             bit32Mem.append(("%08X" % int(bits, 16)))
+
+        DIC += 1
         #------------------------------------------------------------Simulation Part Done----------------------------------------------------------------------------------------#
 
 
@@ -453,7 +447,7 @@ def sim(program, deBug, CpuType):
 
 
 
-    DIC = DIC +1
+    #DIC = DIC + 1
 
 #---------------------------Final Print Out stats---------------------------------------------------------------------
     #print(f"CYCLE COUNT = {cycle['count']}, CYCCLESTOP = {cycleStop},    FETCH = {format(int(fetch,2), '08x')}")
@@ -464,7 +458,7 @@ def sim(program, deBug, CpuType):
 
     print('***Simulation finished***')
     print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
-    print('Dynamic Instr Count: ', DIC)
+    print('Dynamic Instr Count: ', DIC+1)
     print('Registers: $8 - $23')
     printRegisters(register)
     print('\nMemory contents 0x2000 - 0x2100 ')
@@ -488,8 +482,10 @@ def sim(program, deBug, CpuType):
     m.close()
     outMem.close()
 
-        # print(hex(mem[i+3]<<24) + hex(mem[i+2]<<16) + hex(mem[i+1]<<8) + hex(mem[i]) )
-
+    # for state in states:
+    #     state.printState()
+    #     # print(hex(mem[i+3]<<24) + hex(mem[i+2]<<16) + hex(mem[i+1]<<8) + hex(mem[i]) )
+    # print(f"length of states: {len(states)}")
 
 #-----MAIN-----#
 def main():
