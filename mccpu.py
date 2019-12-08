@@ -14,101 +14,79 @@ def minBits(dec):
         numBits = int(log(abs(dec), 2) + 1 )
     return numBits
 
-# # def fetch( instruction , register ,memory ):
-# #     # check insturction
-# #     # update dictionary
-# #     # print dictionary...
-# #
-# # def decode(instruciton):
-# #     # prnit dictionary
-#
-#
-# dict = {
-#     # key     : [0] [1] [2]
-#     "control1": 0
-#
-# }
-# dict['control1'] = 'x'
-# for x in dict:
-#     print(dict[x])
-# #-------------------- sim loop , so we have all info on instruction
-# # x = # cycles for that intruction
-# # for i in range( x):
-# #     fetch( instruction)
-# #     ddecode
-# #
-#
 
 class fifo:
     def __init__(self, size):
 
-        self.index = collections.OrderedDict()
+        self._keys = []
+        self._values = []
         self.capacity = size
 
-        #for i in range(size): # creating w/ all size = 0
-         #   self.index.append(i)
+        for i in range(size): # creating w/ all size = 0
+            self._keys.append(i)
+            self._values.append(0)
 
-    def get(self,key):
-        if key in self.index:
-            value = self.index[key]
-            # store value , for removing
-            del self.index[key]
-            #now add it back, already sorting due to structure
-            self.index[key] = value
-            return value
-        else:
+    def pop (self): # removes first element
+
+        del self._keys[0]
+        del self._values[0]
+
+
+
+    def update(self, key, value):
+
+        keyIndex = self._keys.index(key)
+        self._keys[keyIndex] = key
+        self._values[keyIndex] = value
+
+        self.move_to_end(key)
+
+
+    def move_to_end(self,key):
+        keyIndex = self._keys.index(key)
+        value = self._values[keyIndex]
+
+        del self._keys[keyIndex]
+        del self._values[keyIndex]
+
+        self._keys.append(key)
+        self._values.append(value)
+
+    def get(self,key): # returns key value pair
+        try:
+            keyIndex = self._keys.index(key)
+            return keyIndex, self._keys[keyIndex] , self._values[keyIndex]
+        except ValueError:
             return -1
 
-    def set(self,key , value): # set the value of dictionary, given a key
-        #if key in self.index:
-         #   del self.index[key]
-        #elif len(self.index) >= self.capacity:
-        #    self.index.popitem(last= False)
-
-        tmp = self.index
-        print(f"before: {tmp} after:", end = '')
-        tmp.move_to_end(key)
-        tmp[key] = value
-        print(tmp)
-        self.index = tmp
 
 
-    def front(self):
-        front = [*self.index.keys()][0] # allows us to acces first index key , aka least used key
-        #print(f" in func{tmp} type: {ty} {tmp2}")
-        return front
 
-    def checkWay(self):
+
+    def print(self):
+
+        print(f"keys: {self._keys}\nvalues: {self._values}\n")
+
+    def checkWay(self): # returns *INDEX* of first instance of empty
         occupied = []
         empty = []
-        # for key in self.index:
-        #     print(f"checking way: {key}",end = " ")
-        #     if self.index[key] == 0: # empty
-        #         empty.append(key)
-        #         print("---Empty")
-        #     else:   # occupied
-        #         print("---Occupied")
-        #         empty.append(key)
-        # return [empty,occupied]
+        keyNum = []
         key = 0
-        print(f"fifo.ceckWay {self.index}")
         while key < self.capacity:
+            keyIndex = self._keys.index(key)
+            keyNum.append(key)
             print(f"checking way: {key}", end=" ")
-            if self.index[key] == 0:  # empty
-                empty.append(key)
-                print("---Empty")
+            if self._values[keyIndex] == 0: # empty
+                empty.append(keyIndex)
+                print(f"---Empty")
                 break
-                #return key
-            elif self.index[key] == 1:  # occupied
-                print("---Occupied")
-                occupied.append(key)
+            else:   # occupied
+                print(f"---Occupied")
+                occupied.append(keyIndex)
 
             key += 1
+        return empty,occupied,keyNum
 
-        print( empty, occupied)
-        if len(occupied) < self.capacity:
-            return key , occupied
-        else: return "full" #, occupied
 
 
 
@@ -208,8 +186,8 @@ class CacheMoney:
             for i in range(self.totalblks):  # these are sets..
                 print(f"way: {i} {cache.way[i].data}", end=" ")
                 print(f"tag : {cache.way[i].tag} Valid: {cache.way[i].valid} ")
-            for i in range(self.totalblks):
-                self.lru.index[i] = 0
+            #for i in range(self.totalblks):
+            #    self.lru.index[i] = 0
 
 
 
@@ -298,44 +276,37 @@ class CacheMoney:
                 if not valid, then empty , load into block instant miss, update lru
             #
             """
-            # wayNum = 0
-            # full = False
-            # for key in self.lru.index:
-            #     if self.lru.index[key] == 0: # empty
-            #         wayNum = key
-            #         print(f"checking set {wayNum} --Empty ")
-            #
-            #         #break
-            #     else:
-            #         print(f"checking set {wayNum} -- Occupied")
-            #         full = True
-            wayNum = self.lru.checkWay() # returns key to empty way , and list of occupied ways
-            #empty = OCFUL[0]
-            #occupied = OCFUL[1]
-            #print(empty,occupied)
+
+            wayNum = self.lru.checkWay() # returns index of key to empty way , and list of occupied ways , keysNumber
+            emptyIndex  = wayNum[0]
+            occupyIndex = wayNum[1]
+            keyNums     = wayNum[2]
+
 
             print (f" way: {wayNum} ")
-            if wayNum[0] != "full": # update tag / valid bit, also need to check tag given a key
-                if len(wayNum[1])  == 0: #all are empty, miss
-                    self.way[wayNum[0]].valid = 1
-                    self.way[wayNum[0]].tag = tag
-                    self.lru.set(wayNum[0], 1)
-                else: # all are not empty, loop through occupied, chck tag
-                    for inway in wayNum[1]: # its not full , but occupied, check tag
-                        if self.way[inway].valid == tag:
-                            #self.way[inway].valid = 1
-                            self.way[inway].tag = tag
-                            self.lru.set(inway,1)
-                        else: # if not the same tag, then update empty index
-                            print('not matching tag, fill empty slot')
-                #
-                # self.way[wayNum[0]].valid = 1
-                # self.way[wayNum[0]].tag = tag
-                # self.lru.set(wayNum[0],1)
-            else: # all sets a full,
-                print(f"FULL.... what now")
-            self.lru.index = self.lru.index
-            print(self.lru.index)
+            if len(emptyIndex) == 0 and len(occupyIndex) == self.lru.capacity: # no empty, all full
+                print(f" all occupied{occupyIndex}")
+
+            else:
+                print(f" 1 empty index {emptyIndex}")
+
+            # if wayNum[0] != "full": # update tag / valid bit, also need to check tag given a key
+            #     if len(wayNum[1])  == 0: #all are empty, miss
+            #         self.way[wayNum[0]].valid = 1
+            #         self.way[wayNum[0]].tag = tag
+            #         self.lru.set(wayNum[0], 1)
+            #     else: # all are not empty, loop through occupied, chck tag
+            #         for inway in wayNum[1]: # its not full , but occupied, check tag
+            #             if self.way[inway].valid == tag:
+            #                 #self.way[inway].valid = 1
+            #                 self.way[inway].tag = tag
+            #                 self.lru.set(inway,1)
+            #             else: # if not the same tag, then update empty index
+            #                 print('not matching tag, fill empty slot')
+            #
+            # else: # all sets a full,
+            #     print(f"FULL.... what now")
+
             self.printCache()
 
 
