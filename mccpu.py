@@ -282,7 +282,7 @@ class CacheMoney:
             occupyIndex = wayNum[1]
             keyNums     = wayNum[2]
 
-
+# CAN YOU SEE THIS ALI
             print (f" way: {wayNum} ")
             if len(emptyIndex) == 0 and len(occupyIndex) == self.lru.capacity: # no empty, all full
                 print(f" all occupied{occupyIndex}")
