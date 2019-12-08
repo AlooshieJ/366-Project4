@@ -134,6 +134,9 @@ class CacheMoney:
         self.totalblks = total_blocks
         self.blk_offset = 0
         # self.blks = []
+        self.total_ways = total_ways
+        self.set_Bits = 0
+        self.total_sets = 0
 
         self.memspace = 0 # ???
         self.type = option
@@ -157,10 +160,9 @@ class CacheMoney:
             for i in range(self.totalblks): # creating 4 blocks
                 self.set.append(Block(self.blk_size ))
 
-        # b. a fully-associated cache, block size of 8 Bytes, a total of 8 blocks (b=8; N=8; S=1)
 
         elif self.type == "FA":
-            print(f"Creating Fully Associative Cash| total blocks: {self.totalblks} block size: {self.blk_size}")
+            print(f"Creating Fully Associative Cash| total blocks: {self.totalblks} block size: {self.blk_size} B")
 
             self.blk_offset = minBits(self.blk_size - 1)
             self.ways = self.totalblks
@@ -170,8 +172,22 @@ class CacheMoney:
             for i in range(self.totalblks):
                 self.way.append(Block(self.blk_size))
 
+        # c. a 2-way set-associative cache, block size of 8 Bytes, 4 sets (b=8; N=2; S=4)
         elif self.type == 'SA':
-            print('not implemented yet')
+            print(f"not implemented yet")
+
+            self.blk_offset = minBits(self.blk_size -1)
+            self.total_sets = int(self.totalblks / self.total_ways)
+            self.set_Bits = minBits( self.total_sets  - 1)
+            self.tagsize = 32 - (self.set_Bits + self.blk_offset)
+            print(f"Creating {self.total_ways}-way Set Associative Cash| total sets:{self.total_sets} | total blocks: {self.totalblks} | block size: {self.blk_size} B")
+
+            print(f"tag size: {self.tagsize} | bits for set: {self.set_Bits} | in blk off: {self.blk_offset}")
+
+        for i in range(self.total_sets):
+            for i in range(self.set_Bits):
+                self.way.append(Block(self.blk_size))
+            self.set.append(self.way)
 
 
 
@@ -193,6 +209,27 @@ class CacheMoney:
                 print(f"tag : {cache.way[i].tag} Valid: {cache.way[i].valid} ")
             #for i in range(self.totalblks):
             #    self.lru.index[i] = 0
+
+        if self.type == "SA":
+            s = 0
+            w = 0
+            # for i in range(len(self.set)):
+            #     print(f" set: {bin_digits(i, self.set_Bits)} ")
+            #     for way in self.way:
+            #         print(f" way {c} {way.data} tag:{way.tag} Valid: {way.valid}")
+            #         c += 1
+            #
+            for set in self.set:
+                print(f" set: {bin_digits(s, self.set_Bits)} ")
+                for way in set:
+                    print(f" way: {w} {way.data} tag: {way.tag} Valid: {way.valid} ")
+                    w += 1
+                print("")
+                s +=1
+
+
+                #print(f" tag:")
+
 
 
 
@@ -324,12 +361,22 @@ class CacheMoney:
             #self.lru.print()
 
         elif self.type == 'SA':
-            print("not Done Yet")
+            self.Count += 1
+            addr = bin_digits(addr, 32)
+            tag = addr[:self.tagsize]
 
+            tag = hex(int(tag, 2))
 
+            set = addr[-self.set_Bits - self.blk_offset: -self.blk_offset]
+            off = addr[-self.blk_offset:]
+            strtBlk = addr[:self.tagsize + self.setNum]  # memory range
+            endBlk = strtBlk[:]
+            # self.leastUsed = int(set,2)
+            for i in range(self.blk_offset):
+                strtBlk += '0'
+                endBlk += '1'
 
-
-
+            print(f"({self.Count}) addr: {hex(int(addr,2))} \ntag: {tag} set: {set} off: {off} ")
 
 
     def output(self):
@@ -362,7 +409,7 @@ if cacheType == '1':
 elif cacheType == '2':
     cacheName = 'SA'
     numWays = int(input(" How many Ways?"))
-    blocks = int(input(" How many Blocks? "))
+    blocks = int(input(" How many Sets? "))
     bytesize = int(input(" How many Bytes per block (size in B)?"))
 
 elif cacheType == '3':
