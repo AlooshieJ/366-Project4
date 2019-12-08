@@ -96,7 +96,88 @@ class State:
         print("-----------------------")
         print('')
 
+class Cycle:
+    def __init__(self, MemToReg, MemWrite, Branch, Alusrca, Alusrcb, Regdst, Regwrite):
+        self.MemtoReg = MemToReg
+        self.MemWrite = MemWrite
+        self.Branch = Branch
+        self.AlusrcA = Alusrca
+        self.AlusrcB = Alusrcb
+        self.Regdst =  Regdst
+        self.Regwrite = Regwrite
 
+
+    def printCycle(self):
+        print(f"MemToReg =  {self.MemtoReg}")
+        print(f"MemWrite =  {self.MemWrite}")
+        print(f"Branch   =  {self.Branch}")
+        print(f"AlusrcA  =  {self.AlusrcA}")
+        print(f"AlusrcB  =  {self.AlusrcB}")
+        print(f"Regdst   =  {self.Regdst}")
+        print(f"Regwrite =  {self.Regwrite}")
+
+
+#(MemToReg, MemWrite, Branch, Alusrca, Alusrcb, Regdst, Regwrite)
+
+class CycleInfo:
+    def __init__(self, InstructionName, Type):
+        self.instruction = InstructionName
+        self.type = Type
+        self.taken = False
+        self.c1 = Cycle('0','0','0','0','00','0','0')
+        self.c2 = Cycle('0','0','0','0','11','0','0')
+        self.c3 = Cycle('0','0','0','0','0','0','0')
+        self.c4 = Cycle('0','0','0','0','0','0','0')
+        self.c5 = Cycle('0','0','0','0','0','0','0')
+
+    def cycleUpdate(self):
+        if(self.type == 'R'):				#R-Type
+            self.c3 = Cycle('0','0','0','1','00','0','0')
+            self.c4 = Cycle('0','0','0','0','0','1','1')
+
+        # IGNORE FOR NOW #SIGNAL DONE FOR ADDI
+        elif(self.type == 'addi'): # addi, lui, ori, andi
+
+            self.c3 = Cycle('0','0','1','1','10','0','0')
+            self.c4 = Cycle('0','0','0','0','0','0','1')
+        # IGNORE FOR NOW
+
+
+       ## YOU WERE HERE (START) # Need to research the control signals for LUI, OR, ANDI
+        elif(self.type == 'I'): #I-Type
+            if(self.instruction == "ADDI"):
+                self.c3 = Cycle('0','0','0','0','00','0','0')
+                self.c4 = Cycle('0','0','0','0','0','0','0')
+
+            elif(self.instruction == "LUI"):
+                self.c3 = Cycle('0','0','0','0','00','0','0')
+                self.c4 = Cycle('0','0','0','0','0','0','0')
+
+            elif(self.instruction == "ORI"):
+                self.c3 = Cycle('0','0','0','0','00','0','0')
+                self.c4 = Cycle('0','0','0','0','0','0','0')
+
+            elif(self.instruction == "ANDI"):
+                self.c3 = Cycle('0','0','0','0','00','0','0')
+                self.c4 = Cycle('0','0','0','0','0','0','0')
+
+
+
+        elif(self.type == 'Branch'):		#Branching-Type
+            if(self.taken == True):
+                self.c3 = Cycle('0','0','1','1','00','0','0')
+            else: #For NotTaken not sure about this either
+                self.c3 = Cycle('0','0','0','0','0','0','0')
+
+
+        elif(self.type == 'SW'):				#StoreWord (DONE)
+            self.c3 = Cycle('0','0','0','1','10','0','0')
+            self.c4 = Cycle('0','1','0','0','0','0','0')
+
+        elif(self.type == 'LW'):				#LoadWord
+            self.c3 = Cycle('0','0','0','1','10','0','0')
+            self.c4 = Cycle('0','0','0','0','0','0','0') # no need to IorD = 1
+            self.c5 = Cycle('0','0','0','0','00','0','0')
 
 #------------------------SIM---------------#
 def sim(program, deBug, CpuType):
@@ -121,12 +202,10 @@ def sim(program, deBug, CpuType):
     multiSkip = 0
     userStop = 1
     m_cyclePrint = False
-
-
+    cycInfo = CycleInfo('None','None')
     #-----For previous state------#
     oldRegister = []
     oldMem = []
-    j=0
     states = []
 
 
@@ -140,7 +219,6 @@ def sim(program, deBug, CpuType):
         register[0] = 0 # keep $0 = 0
 
 
-
         #-----------Saving pre-simulator state------------------#
 
         oldMem = mem[:]
@@ -151,10 +229,7 @@ def sim(program, deBug, CpuType):
 
 
         #-----------------------------------------------------------------Begining to simulate instruction-------------------------------------------------------------------#
-                                       #-------------setting cycle length----------------#
-        cycle.update({'length':2})
 
-        #print(f"printing cycleeeee {cycle}")#.get('length')
         if fetch[0:6] == '001000': #<--------------------------------#  ADDI
             PC += 4
             s = int(fetch[6:11],2)
@@ -162,9 +237,8 @@ def sim(program, deBug, CpuType):
             imm = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
             register[t] = register[s] + imm
             '''
-            controlUnit.name = Addi
-            controlUnit.PC = PC
-            controlUnit.CycleAmount = length of Cycles instruction takes
+            cycInfo.instruction = "Addi"
+            cycInfo.Type = 'I'
             '''
 
 
@@ -233,8 +307,6 @@ def sim(program, deBug, CpuType):
                 PC += imm*4
 
         elif fetch[0:6] == '000101':        #<--------------------------------BNE
-            j += 1
-            #mprint(f"this is bne{j}")
             PC += 4
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
@@ -242,8 +314,10 @@ def sim(program, deBug, CpuType):
             # Compare the registers and decide if jumping or not
             if register[s] != register[t]:
                 PC += imm*4
-            #print(f"THIS IS BNE Cycle Length = {cycle['length']}")
-            #cycle['length'] = 6
+                cycInfo.taken = True
+            else:
+                cycInfo.taken = False
+
         
         elif fetch[0:6] == '001101':      #<--------------------------------# ORI
             PC += 4
@@ -251,6 +325,12 @@ def sim(program, deBug, CpuType):
             t = int(fetch[11:16],2)
             imm = int(fetch[16:],2)
             register[t] = register[s] | imm
+            #for multi-cycle#
+            cycle.update({'length':4})
+            cycInfo.type = "I"
+            cycInfo.instruction = "ORI"
+
+
 
         elif fetch[0:6] == '001100':    #<--------------------------------# ANDI
             PC += 4
@@ -345,21 +425,23 @@ def sim(program, deBug, CpuType):
             PC += 4
             print('Not implemented')
 
+
         bit32Mem = []*0x400
         for i in range (0,0x400,4):
             bits = hex((mem[i+3]<<24) + (mem[i+2]<<16) + (mem[i+1]<<8) + (mem[i]))
             bit32Mem.append(("%08X" % int(bits, 16)))
 
         DIC += 1
+
         #------------------------------------------------------------Simulation Part Done----------------------------------------------------------------------------------------#
 
 
         #-----------------------------------------------------Multi-Cycle---------------------------------------------------------------------------------------------#
+        cycInfo.cycleUpdate()                   #Update cycles based on instruction
         if(CpuType == "m" ) :
             cycleStop = cycle['count'] + cycle['length']
+            cycleStart = cycle['count']
 
-            # if(cycleStop == userStop):
-            #     m_cyclePrint = False
             while(cycle['count'] < cycleStop):
                 cycle['count'] += 1
 
@@ -368,6 +450,19 @@ def sim(program, deBug, CpuType):
                     userStop == "n"
 
                 if( (m_cyclePrint == True and type(userStop) == int)  or (userStop == "n" and deBug == "y")  or userStop == 1 or userStop == cycle['count'] ):
+                    print(f"inst = {cycInfo.instruction},     C.L = {cycle.get('length')},    C.S-C.L = {cycleStop - cycle.get('length')},    C.L-1 = {cycle.get('length') -1 }  ")
+                    if( (cycleStop - cycle.get('count')) == (cycle.get('length') -1 ) ):
+                        cycInfo.c1.printCycle()
+                    elif((cycleStop - cycle.get('count')) == (cycle.get('length') -2 ) ):
+                        cycInfo.c2.printCycle()
+                    elif((cycleStop - cycle.get('count')) == (cycle.get('length') -3 ) ):
+                        cycInfo.c3.printCycle()
+                    elif((cycleStop - cycle.get('count')) == (cycle.get('length') -4 ) ):
+                        cycInfo.c4.printCycle()
+                    elif((cycleStop - cycle.get('count')) == (cycle.get('length') -5 ) ):
+                        cycInfo.c5.printCycle()
+
+
                     print("-----------------------")
                     print(f"cycleCount:{cycle['count']},       cycleStop:{cycleStop},    cycleLength:{cycle.get('length')}      fetch = {format(int(fetch,2), '08x')},  ")
                     print("PC: {}, HI: {}, LO:{}".format(PC-4, HI, LO))
@@ -377,11 +472,6 @@ def sim(program, deBug, CpuType):
                     print('\nMemory contents 0x2000 - 0x2100 ')
                     printMemory(oldMem)
                     print('')
-
-                    print(f"round:{Decimal(cycle.get('count') / 2).quantize(0, ROUND_HALF_UP)},    DIC:{DIC}")
-                    if( Decimal(cycle.get('count') / 2).quantize(0, ROUND_HALF_UP) !=  DIC ):
-                        answer = input(f"it breaks here doing {format(int(fetch,2), '08x')} @ dic:{DIC}")
-
 
                 if( (  (deBug == "y")  and (userStop != "n")  and (m_cyclePrint == False) and (userStop == cycle['count'])  ) or nextCycle == True):
                     userStop = input("Want to skip to certain cycle? type 'n' for NO, or type cycle number you wish to skip to\n")
@@ -447,18 +537,16 @@ def sim(program, deBug, CpuType):
 
 
 
-    #DIC = DIC + 1
+    currentState = State(mem, register, format(int(fetch,2), '08x'),DIC)
+    states.append(currentState)
+
+
+
 
 #---------------------------Final Print Out stats---------------------------------------------------------------------
-    #print(f"CYCLE COUNT = {cycle['count']}, CYCCLESTOP = {cycleStop},    FETCH = {format(int(fetch,2), '08x')}")
-    # while(cycle['count'] < cycleStop):
-    #     cycle['count'] += 1
-    #     print(f"this is cycleCount:{cycle['count']}, this is cycleStop:{cycleStop}, this is dic:{DIC}, fetch = {format(int(fetch,2), '08x')}, PC = {PC}")
-    #     print(f"this is cycle #{cycle['count']} stuff")
-
     print('***Simulation finished***')
     print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
-    print('Dynamic Instr Count: ', DIC+1)
+    print('Dynamic Instr Count: ', DIC)
     print('Registers: $8 - $23')
     printRegisters(register)
     print('\nMemory contents 0x2000 - 0x2100 ')
@@ -466,25 +554,19 @@ def sim(program, deBug, CpuType):
 
 
     outMem = open('outputMemory.txt', "w+")
-
-    #print("Address Value(+0)\tValue(+4)\tValue(+8)\tValue(+c)\tValue(+10)\tValue(+14)\tValue(+18)\tValue(1c)\n", end = "")
     outMem.write("Address Value(+0)\tValue(+4)\tValue(+8)\tValue(+c)\tValue(+10)\tValue(+14)\tValue(+18)\tValue(1c)\n")
     for j in range(0,9):   # j is a row of 0x20 addresses in Mars (can be from 0 to 32 - but need at least 9 to show all addresses for project1)
-        #print(hex(j*32+0x2000), end = "\t")
         outMem.write(hex(j*32+0x2000)+"\t")
         for i in range(0,8):        # i is the column in MARS such that: address + value(i*4)
-            #print ("0x" +bit32Mem[j*8+i], end="\t")
             outMem.write(("0x" +bit32Mem[j*8+i]))
             outMem.write("\t")
         outMem.write("\n")
-        #print("\n", end = "")
 
     m.close()
     outMem.close()
 
     # for state in states:
     #     state.printState()
-    #     # print(hex(mem[i+3]<<24) + hex(mem[i+2]<<16) + hex(mem[i+1]<<8) + hex(mem[i]) )
     # print(f"length of states: {len(states)}")
 
 #-----MAIN-----#
@@ -498,9 +580,6 @@ def main():
     #----opening files----#
     f = open("output.txt","w+")
     h = open("TestCase24.asm","r")                 # INPUT FILE NAME WITH ASM CODE HERE
-
-    #h = open("Hash-MIPS-plus.asm","r")
-    #h = open("TestCase.asm","r")
     asm = h.readlines()
 
 
