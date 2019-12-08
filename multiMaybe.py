@@ -116,57 +116,48 @@ class Cycle:
         print(f"Regdst   =  {self.Regdst}")
         print(f"Regwrite =  {self.Regwrite}")
 
-
+    #MemToReg, MemWrite, Branch, AlusrcA, AlusrcB, Regdst, Regwrite#
 
 class CycleInfo:
     def __init__(self, InstructionName, Type):
         self.instruction = InstructionName
         self.type = Type
         self.taken = False
-        self.c1 = Cycle('0','0','0','0','00','0','0')
+        self.c1 = Cycle('0','0','0','0','01','0','0')
         self.c2 = Cycle('0','0','0','0','11','0','0')
-        self.c3 = Cycle('0','0','0','0','0','0','0')
-        self.c4 = Cycle('0','0','0','0','0','0','0')
-        self.c5 = Cycle('0','0','0','0','0','0','0')
+        self.c3 = Cycle('0','0','0','0','00','0','0')
+        self.c4 = Cycle('0','0','0','0','00','0','0')
+        self.c5 = Cycle('0','0','0','0','00','0','0')
 
     def cycleUpdate(self):
         if(self.type == 'R'):				#R-Type
             self.c3 = Cycle('0','0','0','1','00','0','0')
             self.c4 = Cycle('0','0','0','0','0','1','1')
 
-        # IGNORE FOR NOW #SIGNAL DONE FOR ADDI
-        elif(self.type == 'addi'): # addi, lui, ori, andi
-
-            self.c3 = Cycle('0','0','1','1','10','0','0')
-            self.c4 = Cycle('0','0','0','0','0','0','1')
-        # IGNORE FOR NOW
-
-
-       ## YOU WERE HERE (START) # Need to research the control signals for LUI, OR, ANDI
         elif(self.type == 'I'): #I-Type
             if(self.instruction == "ADDI"):
-                self.c3 = Cycle('0','0','0','0','00','0','0')
-                self.c4 = Cycle('0','0','0','0','0','0','0')
+                self.c3 = Cycle('0','0','0','1','10','0','0')
+                self.c4 = Cycle('0','0','0','0','00','0','1')
 
             elif(self.instruction == "LUI"):
                 self.c3 = Cycle('0','0','0','0','00','0','0')
-                self.c4 = Cycle('0','0','0','0','0','0','0')
+                self.c4 = Cycle('0','0','0','0','00','0','0')
 
             elif(self.instruction == "ORI"):
-                self.c3 = Cycle('0','0','0','0','00','0','0')
-                self.c4 = Cycle('0','0','0','0','0','0','0')
+                self.c3 = Cycle('0','1','0','0','00','0','0')
+                self.c4 = Cycle('1','0','0','0','00','0','0')
 
             elif(self.instruction == "ANDI"):
                 self.c3 = Cycle('0','0','0','0','00','0','0')
-                self.c4 = Cycle('0','0','0','0','0','0','0')
+                self.c4 = Cycle('0','0','0','0','00','0','0')
 
-
+                                                        #MemToReg, MemWrite, Branch, AlusrcA, AlusrcB, Regdst, Regwrite#
 
         elif(self.type == 'Branch'):		#Branching-Type
             if(self.taken == True):
                 self.c3 = Cycle('0','0','1','1','00','0','0')
             else: #For NotTaken not sure about this either
-                self.c3 = Cycle('0','0','0','0','0','0','0')
+                self.c3 = Cycle('0','0','1','0','0','0','0')
 
 
         elif(self.type == 'SW'):				#StoreWord (DONE)
@@ -176,7 +167,7 @@ class CycleInfo:
         elif(self.type == 'LW'):				#LoadWord
             self.c3 = Cycle('0','0','0','1','10','0','0')
             self.c4 = Cycle('0','0','0','0','0','0','0') # no need to IorD = 1
-            self.c5 = Cycle('0','0','0','0','00','0','0')
+            self.c5 = Cycle('1','0','0','0','00','0','1')
 
 #------------------------SIM---------------#
 def sim(program, deBug, CpuType):
@@ -235,10 +226,11 @@ def sim(program, deBug, CpuType):
             t = int(fetch[11:16],2)
             imm = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
             register[t] = register[s] + imm
-            '''
-            cycInfo.instruction = "Addi"
+            #For Multi-Cycle
+            cycle.update({"length": 4})
+            cycInfo.instruction = "ADDI"
             cycInfo.Type = 'I'
-            '''
+
 
 
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000100001':#<--------------------------------#  ADDU
@@ -259,6 +251,10 @@ def sim(program, deBug, CpuType):
             else:
                 temp = int(temp,2)
             register[d] = temp
+            #For Multi-Cycle
+            cycle.update({"length": 4})
+            cycInfo.instruction = "ADDU"
+            cycInfo.Type = 'R'
 
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000100000':#<--------------------------------# ADD
             PC += 4
@@ -266,6 +262,10 @@ def sim(program, deBug, CpuType):
             t = int(fetch[11:16],2)
             d = int(fetch[16:21],2)
             register[d] = register[s] + register[t]
+            #For Multi-Cycle
+            cycle.update({"length": 4})
+            cycInfo.instruction = "ADD"
+            cycInfo.Type = 'R'
 
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000100010': #<--------------------------------#  SUB
             PC += 4
@@ -273,6 +273,10 @@ def sim(program, deBug, CpuType):
             t = int(fetch[11:16],2)
             d = int(fetch[16:21],2)
             register[d] = register[s] - register[t]
+            #For Multi-Cycle
+            cycle.update({"length": 4})
+            cycInfo.instruction = "SUB"
+            cycInfo.Type = 'R'
 
 
         elif fetch[0:6] == '000000' and fetch[26:32] == '000010':#<--------------------------------#  SRL
@@ -281,6 +285,10 @@ def sim(program, deBug, CpuType):
             d = int(fetch[16:21],2)
             h = int(fetch[21:26],2)
             register[d] = register[t] >> h
+            #For Multi-Cycle
+            cycle.update({"length": 4})
+            cycInfo.instruction = "SRL"
+            cycInfo.Type = 'R'
 
         elif fetch[0:6] == '000000' and fetch[26:32] == '000000':#<--------------------------------#  SLL
             PC += 4
@@ -295,21 +303,36 @@ def sim(program, deBug, CpuType):
             else:
                 t = int(t, 2)
             register[d] = t
+            #For Multi-Cycle
+            cycle.update({"length": 4})
+            cycInfo.instruction = "SLL"
+            cycInfo.Type = 'R'
             
         elif fetch[0:6] == '000100':  #<--------------------------------#    # BEQ
             PC += 4
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
             imm = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
+            #For Multi-Cycle
+            cycle.update({"length": 4})
+            cycInfo.instruction = "BEQ"
+            cycInfo.Type = 'I'
             # Compare the registers and decide if jumping or not
             if register[s] == register[t]:
                 PC += imm*4
+                cycInfo.taken = True
+            else:
+                cycInfo.taken = False
 
         elif fetch[0:6] == '000101':        #<--------------------------------BNE
             PC += 4
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
             imm = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
+            #For Multi-Cycle
+            cycle.update({"length": 4})
+            cycInfo.instruction = "BEQ"
+            cycInfo.Type = 'I'
             # Compare the registers and decide if jumping or not
             if register[s] != register[t]:
                 PC += imm*4
@@ -336,7 +359,11 @@ def sim(program, deBug, CpuType):
             s = int(fetch[6:11],2)
             t = int(fetch[11:16],2)
             imm = int(fetch[16:],2)
-            register[t] = register[s] & imm            
+            register[t] = register[s] & imm
+            #For Multi-Cycle
+            cycle.update({"length": 4})
+            cycInfo.instruction = "ANDI"
+            cycInfo.Type = 'I'
 
         elif fetch[0:6] == '101011':    #<--------------------------------# SW
             PC += 4
@@ -350,6 +377,10 @@ def sim(program, deBug, CpuType):
                 mem[offset+2] = (register[t] >> 16) & 0x000000ff # +2
                 mem[offset+1] = (register[t] >> 8) & 0x000000ff # +1
                 mem[offset+0] = register[t] & 0x000000ff  # +0
+            #For Multi-Cycle
+            cycle.update({"length": 4})
+            cycInfo.instruction = "SW"
+            cycInfo.Type = 'SW'
 
         elif fetch[0:6] == '100011': #<--------------------------------# LW
             PC += 4
@@ -373,6 +404,10 @@ def sim(program, deBug, CpuType):
             else:
                 loaded = int(loaded,2)
             register[t] = loaded
+            #For Multi-Cycle
+            cycle.update({"length": 5})
+            cycInfo.instruction = "LW"
+            cycInfo.Type = 'LW'
 
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000101010':#<--------------------------------#  SLT
             PC += 4
@@ -383,6 +418,10 @@ def sim(program, deBug, CpuType):
                 register[d] = 1
             else:
                 register[d] = 0
+            #For Multi-Cycle
+            cycle.update({"length": 4})
+            cycInfo.instruction = "SLT"
+            cycInfo.Type = 'R'
 
         elif fetch[0:6] == '001111': #<--------------------------------#  LUI
             PC += 4
@@ -390,6 +429,10 @@ def sim(program, deBug, CpuType):
             imm = int(fetch[16:],2)
             imm = imm << 16
             register[t] = imm
+            #For Multi-Cycle
+            cycle.update({"length": 4})
+            cycInfo.instruction = "LUI"
+            cycInfo.Type = 'I'
 
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000011001': # MULTU
             PC += 4
@@ -406,8 +449,11 @@ def sim(program, deBug, CpuType):
             t = int(fetch[11:16],2)
             d = int(fetch[16:21],2)
             register[d] = register[s] ^ register[t]
-            #print(register[d])
-            #cycle.update("length": 5)
+            #For Multi-Cycle
+            cycle.update({"length": 4})
+            cycInfo.instruction = "XOR"
+            cycInfo.Type = 'R'
+
 
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000010000':#<--------------------------------#  MFHI
             PC += 4
@@ -450,15 +496,21 @@ def sim(program, deBug, CpuType):
 
                 if( (m_cyclePrint == True and type(userStop) == int)  or (userStop == "n" and deBug == "y")  or userStop == 1 or userStop == cycle['count'] ):
                     print(f"inst = {cycInfo.instruction},     C.L = {cycle.get('length')},    C.S-C.L = {cycleStop - cycle.get('length')},    C.L-1 = {cycle.get('length') -1 }  ")
+                    print(f"Cycle : {cycle.get('count')}")
                     if( (cycleStop - cycle.get('count')) == (cycle.get('length') -1 ) ):
+                        print(f"{cycInfo.instruction}'s Cycle 1")
                         cycInfo.c1.printCycle()
                     elif((cycleStop - cycle.get('count')) == (cycle.get('length') -2 ) ):
+                        print(f"{cycInfo.instruction}'s Cycle 2")
                         cycInfo.c2.printCycle()
                     elif((cycleStop - cycle.get('count')) == (cycle.get('length') -3 ) ):
+                        print(f"{cycInfo.instruction}'s Cycle 3")
                         cycInfo.c3.printCycle()
                     elif((cycleStop - cycle.get('count')) == (cycle.get('length') -4 ) ):
+                        print(f"{cycInfo.instruction}'s Cycle 4")
                         cycInfo.c4.printCycle()
                     elif((cycleStop - cycle.get('count')) == (cycle.get('length') -5 ) ):
+                        print(f"{cycInfo.instruction}'s Cycle 5")
                         cycInfo.c5.printCycle()
 
 
