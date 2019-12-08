@@ -314,7 +314,7 @@ def sim(program, deBug, CpuType):
             t = int(fetch[11:16],2)
             imm = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
             #For Multi-Cycle
-            cycle.update({"length": 4})
+            cycle.update({"length": 3})
             cycInfo.instruction = "BEQ"
             cycInfo.Type = 'I'
             # Compare the registers and decide if jumping or not
@@ -330,7 +330,7 @@ def sim(program, deBug, CpuType):
             t = int(fetch[11:16],2)
             imm = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
             #For Multi-Cycle
-            cycle.update({"length": 4})
+            cycle.update({"length": 3})
             cycInfo.instruction = "BEQ"
             cycInfo.Type = 'I'
             # Compare the registers and decide if jumping or not
@@ -495,34 +495,37 @@ def sim(program, deBug, CpuType):
                     userStop == "n"
 
                 if( (m_cyclePrint == True and type(userStop) == int)  or (userStop == "n" and deBug == "y")  or userStop == 1 or userStop == cycle['count'] ):
-                    print(f"inst = {cycInfo.instruction},     C.L = {cycle.get('length')},    C.S-C.L = {cycleStop - cycle.get('length')},    C.L-1 = {cycle.get('length') -1 }  ")
-                    print(f"Cycle : {cycle.get('count')}")
+                    print(f"inst = {cycInfo.instruction},     C.L = {cycle.get('length')},    C.S-C.L = {cycleStop - cycle.get('length')},    C.L-1 = {cycle.get('length') -1 },  DIC = {DIC-1}  ")
+                    print(f"Cycle : {cycle.get('count')}\n")
                     if( (cycleStop - cycle.get('count')) == (cycle.get('length') -1 ) ):
-                        print(f"{cycInfo.instruction}'s Cycle 1")
+                        print(f"{cycInfo.instruction}'s Cycle 1\n")
                         cycInfo.c1.printCycle()
                     elif((cycleStop - cycle.get('count')) == (cycle.get('length') -2 ) ):
-                        print(f"{cycInfo.instruction}'s Cycle 2")
+                        print(f"{cycInfo.instruction}'s Cycle 2\n")
                         cycInfo.c2.printCycle()
                     elif((cycleStop - cycle.get('count')) == (cycle.get('length') -3 ) ):
-                        print(f"{cycInfo.instruction}'s Cycle 3")
+                        print(f"{cycInfo.instruction}'s Cycle 3\n")
                         cycInfo.c3.printCycle()
                     elif((cycleStop - cycle.get('count')) == (cycle.get('length') -4 ) ):
-                        print(f"{cycInfo.instruction}'s Cycle 4")
+                        print(f"{cycInfo.instruction}'s Cycle 4\n")
                         cycInfo.c4.printCycle()
                     elif((cycleStop - cycle.get('count')) == (cycle.get('length') -5 ) ):
-                        print(f"{cycInfo.instruction}'s Cycle 5")
+                        print(f"{cycInfo.instruction}'s Cycle 5\n")
                         cycInfo.c5.printCycle()
-
-
-                    print("-----------------------")
-                    print(f"cycleCount:{cycle['count']},       cycleStop:{cycleStop},    cycleLength:{cycle.get('length')}      fetch = {format(int(fetch,2), '08x')},  ")
-                    print("PC: {}, HI: {}, LO:{}".format(PC-4, HI, LO))
-                    print('Dynamic Instr Count: ', DIC-1)
-                    print('Registers: $8 - $23')
-                    printRegisters(oldRegister)
-                    print('\nMemory contents 0x2000 - 0x2100 ')
-                    printMemory(oldMem)
                     print('')
+                    print("-------------------------------------------------------------------------------------------------------------------")
+                    print('')
+
+
+                    # print("-----------------------")
+                    # print(f"cycleCount:{cycle['count']},       cycleStop:{cycleStop},    cycleLength:{cycle.get('length')}      fetch = {format(int(fetch,2), '08x')},  ")
+                    # print("PC: {}, HI: {}, LO:{}".format(PC-4, HI, LO))
+                    # print('Dynamic Instr Count: ', DIC-1)
+                    # print('Registers: $8 - $23')
+                    # printRegisters(oldRegister)
+                    # print('\nMemory contents 0x2000 - 0x2100 ')
+                    # printMemory(oldMem)
+                    # print('')
 
                 if( (  (deBug == "y")  and (userStop != "n")  and (m_cyclePrint == False) and (userStop == cycle['count'])  ) or nextCycle == True):
                     userStop = input("Want to skip to certain cycle? type 'n' for NO, or type cycle number you wish to skip to\n")
