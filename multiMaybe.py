@@ -77,7 +77,7 @@ def printMemory(memory):
             print(f"0x{byte3.upper()}{byte2.upper()}{byte1.upper()}{byte0.upper()}", end = "\t")
             k = k + 4
     print('')
-
+#------------------------------------------------------------------------------Classes----------------------------------------------------#
 class State:
 
     def __init__(self, memory, registers, instruction, stateNumber):
@@ -169,6 +169,33 @@ class CycleInfo:
             self.c4 = Cycle('0','0','0','0','0','0','0') # no need to IorD = 1
             self.c5 = Cycle('1','0','0','0','00','0','1')
 
+class DoubleBitSignal():
+    def __init__(self, bit00, bit01, bit10, bit11, dontCares):
+        self.bit00 = bit00
+        self.bit01 = bit01
+        self.bit10 = bit10
+        self.bit11 = bit11
+        self.dontCares = dontCares
+
+class SingleBitSignal():
+    def __init__(self, zeros, ones, dontCares):
+        self.zeros = zeros
+        self.ones = ones
+        self.dontCares = dontCares
+
+class Counter():
+    def __init__(self, threeCycles, fourCycles, fiveCycles):
+        self.threeCycles = threeCycles
+        self.fourCycles = fourCycles
+        self.fiveCycles = fiveCycles
+        self.MemToReg = SingleBitSignal(0,0,0) #zeros, ones, dontCares
+        self.MemWrite = SingleBitSignal(0,0,0) #zeros, ones, dontCares
+        self.Branch = SingleBitSignal(0,0,0) #zeros, ones, dontCares
+        self.Alusrca = SingleBitSignal(0,0,0) #zeros, ones, dontCares
+        self.Alusrcb = DoubleBitSignal(0,0,0,0,0)  #bit00, bit01, bit10, bit11, dontCares
+        self.Regdst = SingleBitSignal(0,0,0) #zeros, ones, dontCares
+        self.Regwrite = SingleBitSignal(0,0,0) #zeros, ones, dontCares
+
 #------------------------SIM---------------#
 def sim(program, deBug, CpuType):
     finished = False      # Is the simulation finished? 
@@ -183,7 +210,7 @@ def sim(program, deBug, CpuType):
     printDicInput = "n"     #for deBug
     m = open("memAddr.txt","w+") #outPut File for cash
 
-    #-----ForCycleMode-----#
+    #------------------------ForCycleMode--------------------------#
     cycle = {
         'count'  : 0,
         'length' : 0
@@ -193,6 +220,8 @@ def sim(program, deBug, CpuType):
     userStop = 1
     m_cyclePrint = False
     cycInfo = CycleInfo('None','None')
+    counter = Counter(0,0,0)
+
     #-----For previous state------#
     oldRegister = []
     oldMem = []
@@ -597,7 +626,7 @@ def sim(program, deBug, CpuType):
 
 
 
-#---------------------------Final Print Out stats---------------------------------------------------------------------
+#---------------------------Final Print Out stats---------------------------------------------------------------------#
     print('***Simulation finished***')
     print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
     print('Dynamic Instr Count: ', DIC)
