@@ -60,11 +60,18 @@ class fifo:
             return -1
 
     def set(self,key , value): # set the value of dictionary, given a key
-        if key in self.index:
-            del self.index[key]
-        elif len(self.index) >= self.capacity:
-            self.index.popitem(last= False)
-        self.index[key] = value
+        #if key in self.index:
+         #   del self.index[key]
+        #elif len(self.index) >= self.capacity:
+        #    self.index.popitem(last= False)
+
+        tmp = self.index
+        print(f"before: {tmp} after:", end = '')
+        tmp.move_to_end(key)
+        tmp[key] = value
+        print(tmp)
+        self.index = tmp
+
 
     def front(self):
         front = [*self.index.keys()][0] # allows us to acces first index key , aka least used key
@@ -84,6 +91,7 @@ class fifo:
         #         empty.append(key)
         # return [empty,occupied]
         key = 0
+        print(f"fifo.ceckWay {self.index}")
         while key < self.capacity:
             print(f"checking way: {key}", end=" ")
             if self.index[key] == 0:  # empty
@@ -91,7 +99,7 @@ class fifo:
                 print("---Empty")
                 break
                 #return key
-            else:  # occupied
+            elif self.index[key] == 1:  # occupied
                 print("---Occupied")
                 occupied.append(key)
 
@@ -306,12 +314,12 @@ class CacheMoney:
             #occupied = OCFUL[1]
             #print(empty,occupied)
 
-            print ( wayNum)
+            print (f" way: {wayNum} ")
             if wayNum[0] != "full": # update tag / valid bit, also need to check tag given a key
                 if len(wayNum[1])  == 0: #all are empty, miss
                     self.way[wayNum[0]].valid = 1
                     self.way[wayNum[0]].tag = tag
-                    self.lru.set(wayNum[0],1)
+                    self.lru.set(wayNum[0], 1)
                 else: # all are not empty, loop through occupied, chck tag
                     for inway in wayNum[1]: # its not full , but occupied, check tag
                         if self.way[inway].valid == tag:
@@ -326,7 +334,7 @@ class CacheMoney:
                 # self.lru.set(wayNum[0],1)
             else: # all sets a full,
                 print(f"FULL.... what now")
-
+            self.lru.index = self.lru.index
             print(self.lru.index)
             self.printCache()
 
