@@ -117,7 +117,6 @@ class Cycle:
         print(f"Regwrite =  {self.Regwrite}")
 
 
-#(MemToReg, MemWrite, Branch, Alusrca, Alusrcb, Regdst, Regwrite)
 
 class CycleInfo:
     def __init__(self, InstructionName, Type):
