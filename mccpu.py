@@ -75,13 +75,13 @@ class fifo:
         while key < self.capacity:
             keyIndex = self._keys.index(key)
             keyNum.append(key)
-            print(f"checking way: {key}", end=" ")
+            #print(f"checking way: {key}", end=" ")
             if self._values[keyIndex] == 0: # empty
                 empty.append(keyIndex)
-                print(f"---Empty")
+                #print(f"---Empty")
                 break
             else:   # occupied
-                print(f"---Occupied")
+                #print(f"---Occupied")
                 occupied.append(keyIndex)
 
             key += 1
@@ -171,6 +171,9 @@ class CacheMoney:
                 self.way.append(Block(self.blk_size))
 
         elif self.type == 'SA':
+            print('not implemented yet')
+
+
 
 
     def printCache (self):
@@ -288,10 +291,13 @@ class CacheMoney:
 # CAN YOU SEE THIS ALI
             print (f" way: {wayNum} ")
             for numWays in self.way:
-               # print(f"looking @ {wayCounter}")
+                print(f"Checking way: {wayCounter} tag {numWays.tag} ",end = '')
+                if numWays.valid == 0:
+                    print('---Empty')
                 if numWays.valid == 1:
+                    print('---Occupied')
                     if numWays.tag == tag: # check tag
-                        print(f"match")
+                        print(f"---Hit on way {wayCounter} tag {numWays.tag}")
                         numWays.valid = 1
                         self.Hit += 1
                         self.lru.update(wayCounter , 1)
@@ -300,7 +306,7 @@ class CacheMoney:
                 wayCounter += 1
 
             if len(emptyIndex) == 1 and match != 1: # use empty
-                print(f"occupied tags are not match, use empty")
+                print(f"---MISS using empty , way {keyNums[-1:][0]}")
                 self.way[self.lru._keys[emptyIndex[0]]].tag = tag
                 self.way[self.lru._keys[emptyIndex[0]]].valid = 1
                 self.lru.update(self.lru._keys[emptyIndex[0]],1)
@@ -313,8 +319,9 @@ class CacheMoney:
                 self.lru.update(self.lru._keys[0],1)
                 self.Miss += 1
 
-            self.printCache()
-            self.lru.print()
+            if debug == 'y':
+                self.printCache()
+            #self.lru.print()
 
         elif self.type == 'SA':
             print("not Done Yet")

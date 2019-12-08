@@ -160,7 +160,7 @@ print(lru.get(2))
 lru.print()
 t = lru.checkWay()
 print(t)
-print(t[0][0] , t[1])
+print(t[0][0] , t[2][-1:][0])
 #for key , value in lru.index:
  #   print( key, value)
 #print(lru.index)
