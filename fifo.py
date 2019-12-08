@@ -151,7 +151,7 @@ class fifo:
 lru = fifo(5)
 lru.print()
 
-for tmp in range(lru.capacity):
+for tmp in range(lru.capacity-1):
     lru.update(tmp, 1)
 lru.print()
 
@@ -160,7 +160,7 @@ print(lru.get(2))
 lru.print()
 t = lru.checkWay()
 print(t)
-print(len(t[0]) , len(t[1]))
+print(t[0][0] , t[1])
 #for key , value in lru.index:
  #   print( key, value)
 #print(lru.index)

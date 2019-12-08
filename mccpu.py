@@ -128,7 +128,7 @@ class Block:
 
 class CacheMoney:
 
-    def __init__(self, option,total_blocks,bytes):
+    def __init__(self, option,total_blocks,bytes,total_ways = 1):
 
         self.blk_size = bytes # input
         self.totalblks = total_blocks
@@ -169,6 +169,8 @@ class CacheMoney:
 
             for i in range(self.totalblks):
                 self.way.append(Block(self.blk_size))
+
+        elif self.type == 'SA':
 
 
     def printCache (self):
@@ -281,62 +283,51 @@ class CacheMoney:
             emptyIndex  = wayNum[0]
             occupyIndex = wayNum[1]
             keyNums     = wayNum[2]
-
+            match       = 0
+            wayCounter  = 0
 # CAN YOU SEE THIS ALI
             print (f" way: {wayNum} ")
-            if len(emptyIndex) == 0 and len(occupyIndex) == self.lru.capacity: # no empty, all full
-                print(f" all occupied{occupyIndex}")
+            for numWays in self.way:
+               # print(f"looking @ {wayCounter}")
+                if numWays.valid == 1:
+                    if numWays.tag == tag: # check tag
+                        print(f"match")
+                        numWays.valid = 1
+                        self.Hit += 1
+                        self.lru.update(wayCounter , 1)
+                        match = 1
+                        break
+                wayCounter += 1
 
-            else:
-                print(f" 1 empty index {emptyIndex}")
-
-            # if wayNum[0] != "full": # update tag / valid bit, also need to check tag given a key
-            #     if len(wayNum[1])  == 0: #all are empty, miss
-            #         self.way[wayNum[0]].valid = 1
-            #         self.way[wayNum[0]].tag = tag
-            #         self.lru.set(wayNum[0], 1)
-            #     else: # all are not empty, loop through occupied, chck tag
-            #         for inway in wayNum[1]: # its not full , but occupied, check tag
-            #             if self.way[inway].valid == tag:
-            #                 #self.way[inway].valid = 1
-            #                 self.way[inway].tag = tag
-            #                 self.lru.set(inway,1)
-            #             else: # if not the same tag, then update empty index
-            #                 print('not matching tag, fill empty slot')
-            #
-            # else: # all sets a full,
-            #     print(f"FULL.... what now")
+            if len(emptyIndex) == 1 and match != 1: # use empty
+                print(f"occupied tags are not match, use empty")
+                self.way[self.lru._keys[emptyIndex[0]]].tag = tag
+                self.way[self.lru._keys[emptyIndex[0]]].valid = 1
+                self.lru.update(self.lru._keys[emptyIndex[0]],1)
+                self.Miss += 1
+                #have to print which memory access ...
+            elif len(emptyIndex) == 0 and match != 1: # if no empty check lru, update lru
+                print(f"Miss due to FULL SET --- LRU replace way {self.lru._keys[0]}")
+                self.way[self.lru._keys[0]].tag = tag
+                self.way[self.lru._keys[0]].valid = 1
+                self.lru.update(self.lru._keys[0],1)
+                self.Miss += 1
 
             self.printCache()
+            self.lru.print()
+
+        elif self.type == 'SA':
+            print("not Done Yet")
 
 
-            #
-            # count = 0
-            # for ways in self.way:
-            #     if ways.valid == 0: # if empty
-            #             self.Miss += 1
-            #             print(f"({self.Count}) ---MISS--- addr: {addr}\n| tag: {tag} way: {count} ")
-            #             ways.valid = 1
-            #             break
-            #
-            #
-            #
-            #     else: # not empty then check tag
-            #         if ways.tag == tag:
-            #             self.Hit += 1
-            #             print(f"({self.Count}) ---Hit--- addr: {addr}\n| tag: {tag} way: {count} ")
-            #             ways.valid = 1
-            #             break
-            #
-            #     count += 1
 
 
-                #print(ways.data)
+
 
 
     def output(self):
 
-        print(f"| total memory Accesses: {self.Count} Last used set: {self.lru.index}\n| Hits: {self.Hit} Miss: {self.Miss}")
+        print(f"| total memory Accesses: {self.Count} \n| Hits: {self.Hit} Miss: {self.Miss}")
         print(f"| Hit %  {( self.Hit / (self.Hit + self.Miss) )* 100}")
 
 
@@ -351,6 +342,7 @@ Memory = [ ] # each index is a byte
 cacheName = ""
 blocks = 0
 bytesize = 0
+numWays = 1 # by default
 print("$$$ Cash $$$")
 print(f" Welcome to DataCache sim ! how would you like your $CACHE$?")
 cacheType = input("(1) for Direct Memory (2) Set-Associative (3) Fully Associative ")
@@ -360,6 +352,11 @@ if cacheType == '1':
     blocks = int(input( " How many Blocks? "))
     bytesize  = int( input( " How many Bytes per block (size in B)?"))
     #cache = CacheMoney('DM',blocks,bytesize)
+elif cacheType == '2':
+    cacheName = 'SA'
+    numWays = int(input(" How many Ways?"))
+    blocks = int(input(" How many Blocks? "))
+    bytesize = int(input(" How many Bytes per block (size in B)?"))
 
 elif cacheType == '3':
     cacheName = 'FA'
@@ -385,7 +382,7 @@ for line in addrs:
     m.append(line[2][1:-3])
 #print(m)
 
-cache = CacheMoney(cacheName, blocks,bytesize) # type of cache , mem? , sets, bytes
+cache = CacheMoney(cacheName, blocks,bytesize,numWays) # type of cache , mem? , sets, bytes
 cache.printCache()
 #
 for mems in m:
