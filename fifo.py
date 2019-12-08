@@ -40,7 +40,7 @@ class fifo:
     def get(self,key): # returns key value pair
         try:
             keyIndex = self._keys.index(key)
-            return self._keys[keyIndex] , self._values[keyIndex]
+            return keyIndex, self._keys[keyIndex] , self._values[keyIndex]
         except ValueError:
             return -1
 
@@ -80,9 +80,8 @@ class fifo:
 lru = fifo(5)
 lru.print()
 
-for tmp in range(lru.capacity-3):
+for tmp in range(lru.capacity):
     lru.update(tmp, 1)
-#lru.move_to_end(2)
 lru.print()
 
 lru.update(2,0)
