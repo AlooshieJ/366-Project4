@@ -228,10 +228,9 @@ class CacheMoney:
                     print(f" way: {w} {way.data} tag: {way.tag} Valid: {way.valid} ")
                     w += 1
                 print('')
-                print(f"lru for set {s} : ")
+                print(f"lru for set {s} : ") # lru printing for each set
                 self.allLRU[s].print()
 
-                print("")
                 s +=1
 
 
@@ -383,6 +382,15 @@ class CacheMoney:
                 endBlk += '1'
 
             print(f"({self.Count}) addr: {hex(int(addr,2))} \ntag: {tag} set: {set} off: {off} ")
+
+
+            # for each set, check each way, within that way check the tag and valid , one address has N options
+
+            for i in range(len(self.set)):
+                wayResult = self.allLRU[i].checkWay()
+
+                print(wayResult)
+
 
 
     def output(self):
