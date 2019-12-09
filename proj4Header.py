@@ -3,7 +3,7 @@ from math import *
 #-----allows raw input------#
 try: input = raw_input
 except NameError: pass
-#--------extra funcs------#
+#--------Extra funcs------#
 def minBitsSig(dec):
     if(dec == 0 or dec == -1 ):
         numBits = 1
@@ -106,7 +106,7 @@ class State:
         print("-----------------------")
         print('')
 
-
+#Cycle Class#
 class Cycle:
     def __init__(self, MemToReg, MemWrite, Branch, Alusrca, Alusrcb, Regdst, Regwrite):
         self.MemToReg = MemToReg
@@ -128,29 +128,29 @@ class Cycle:
         print(f"\t Regwrite =  {self.Regwrite}")
 
 
-#(MemToReg, MemWrite, Branch, Alusrca, Alusrcb, Regdst, Regwrite)
 
+#CycleInfo Class#
 class CycleInfo:
     def __init__(self, InstructionName, Type):
         self.instruction = InstructionName
         self.Type = Type
         self.taken = False
         self.c1 = Cycle('0','0','0','0','00','0','0')
-        self.c2 = Cycle('0','0','0','0','11','0','0')
+        self.c2 = Cycle('0','0','0','0','11','0','0')                                           #(MemToReg, MemWrite, Branch, Alusrca, Alusrcb, Regdst, Regwrite)
         self.c3 = Cycle('0','0','0','0','00','0','0')
         self.c4 = Cycle('0','0','0','0','00','0','0')
         self.c5 = Cycle('0','0','0','0','00','0','0')
 
     def cycleUpdate(self):
         if(self.Type == 'R'):				#R-Type
-            self.c3 = Cycle('1','0','0','1','00','0','0')
+            self.c3 = Cycle('1','0','0','1','00','0','0')                               #(MemToReg, MemWrite, Branch, Alusrca, Alusrcb, Regdst, Regwrite)
             self.c4 = Cycle('0','0','0','0','00','1','1')
 
 
         elif(self.Type == 'I'): #I-Type
             if(self.instruction == "ADDI"):
                 self.c3 = Cycle('0','0','0','1','10','0','0')
-                self.c4 = Cycle('0','0','0','0','00','0','1')
+                self.c4 = Cycle('0','0','0','0','00','0','1')                                         #(MemToReg, MemWrite, Branch, Alusrca, Alusrcb, Regdst, Regwrite)
 
             elif(self.instruction == "LUI"):
                 self.c3 = Cycle('0','0','0','0','00','0','0')
@@ -158,7 +158,7 @@ class CycleInfo:
 
             elif(self.instruction == "ORI"):
                 self.c3 = Cycle('0','0','0','0','00','0','0')
-                self.c4 = Cycle('0','0','0','0','00','0','0')
+                self.c4 = Cycle('0','0','0','0','00','0','0')                       #(MemToReg, MemWrite, Branch, Alusrca, Alusrcb, Regdst, Regwrite)
 
             elif(self.instruction == "ANDI"):
                 self.c3 = Cycle('0','0','0','0','00','0','0')
@@ -167,7 +167,7 @@ class CycleInfo:
 
 
         elif(self.Type == 'Branch'):		#Branching-Type
-                self.c3 = Cycle('0','0','1','1','00','0','0')
+                self.c3 = Cycle('0','0','1','1','00','0','0')                           #(MemToReg, MemWrite, Branch, Alusrca, Alusrcb, Regdst, Regwrite)
 
 
         elif(self.Type == 'SW'):				#StoreWord
@@ -176,11 +176,12 @@ class CycleInfo:
 
         elif(self.Type == 'LW'):				#LoadWord
             self.c3 = Cycle('0','0','0','1','10','0','0')
-            self.c4 = Cycle('0','0','0','0','00','0','0')
+            self.c4 = Cycle('0','0','0','0','00','0','0')               #(MemToReg, MemWrite, Branch, Alusrca, Alusrcb, Regdst, Regwrite)
             self.c5 = Cycle('0','0','0','0','00','0','0')
 
 
 
+#Double Signal Counter#
 class DoubleBitSignal():
     def __init__(self, bit00, bit01, bit10, bit11, dontCares):
         self.bit00 = bit00
@@ -189,12 +190,14 @@ class DoubleBitSignal():
         self.bit11 = bit11
         self.dontCares = dontCares
 
+#Single Signal Counter#
 class SingleBitSignal():
     def __init__(self, zeros, ones, dontCares):
         self.zeros = zeros
         self.ones = ones
         self.dontCares = dontCares
 
+#Overall Counters: CycleLengths ,SingleSig, DoubleSig
 class Counter():
     def __init__(self, threeCycles, fourCycles, fiveCycles):
         self.threeCycles = threeCycles
