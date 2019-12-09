@@ -340,7 +340,7 @@ def sim(program, deBug, CpuType):
                 if( (cycleStop - cycle.get('count')) == (cycle.get('length') -1 ) ):
                     counter.updateCounters(cycInfo.c1)
                 elif((cycleStop - cycle.get('count')) == (cycle.get('length') -2 ) ):
-                    counter.updateCounters(cycInfo.c1)
+                    counter.updateCounters(cycInfo.c2)
                 elif((cycleStop - cycle.get('count')) == (cycle.get('length') -3 ) ):
                     counter.updateCounters(cycInfo.c3)
                 elif((cycleStop - cycle.get('count')) == (cycle.get('length') -4 ) ):
