@@ -203,12 +203,16 @@ def sim(program, deBug, CpuType):
             t = int(fetch[11:16],2)
             offset = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
             offset = offset + register[s]-0x2000
+            #Writing to Cache File
             m.write(f"SW @ dic:, {DIC - 1}, {format((offset + 0x2000), '08x')}  \n")
+            #Storing a word to memory
             if (offset % 4) == 0:
                 mem[offset+3] = (register[t] >> 24) & 0x000000ff  # +3
                 mem[offset+2] = (register[t] >> 16) & 0x000000ff # +2
                 mem[offset+1] = (register[t] >> 8) & 0x000000ff # +1
                 mem[offset+0] = register[t] & 0x000000ff  # +0
+            #For Cache
+            # updatedMem = mem[:]
             #For Multi-Cycle
             cycle.update({"length": 4})
             cycInfo.instruction = "SW"
@@ -220,7 +224,9 @@ def sim(program, deBug, CpuType):
             t = int(fetch[11:16],2)
             offset = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
             offset = offset + register[s]-0x2000
+            #Writing to Cache File
             m.write(f"LW @ dic:, {DIC - 1}, {format((offset + 0x2000), '08x')}  \n")
+            #Loading a word from memory
             memoffset0 = format((mem[offset+0]), '02x')
             memoffset1 = format((mem[offset+1]), '02x')
             memoffset2 = format((mem[offset+2]), '02x')
@@ -311,6 +317,7 @@ def sim(program, deBug, CpuType):
         DIC += 1
 
         #------------------------------------------------------------Simulation Part Done----------------------------------------------------------------------------------------#
+
 
 
         #-----------------------------------------------------Multi-Cycle---------------------------------------------------------------------------------------------#
@@ -426,7 +433,7 @@ def sim(program, deBug, CpuType):
 
 
 
-        #---------------------------------------------For Debug---------------------------------------------------------------------------------#
+        #---------------------------------------------For Regular Debug Mode---------------------------------------------------------------------------------#
         if(printDicInput == "y" and (skip == True) ):
             print("-----------------------")
             print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
@@ -473,7 +480,7 @@ def sim(program, deBug, CpuType):
 
 
 
-#---------------------------Final Print Out stats---------------------------------------------------------------------#
+#---------------------------Final Print Out Ttats---------------------------------------------------------------------#
     print('***Simulation finished***')
     print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
     print('Dynamic Instr Count: ', DIC)
