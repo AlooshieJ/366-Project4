@@ -148,7 +148,7 @@ def sim(program, deBug, CpuType):
             #For Multi-Cycle
             cycle.update({"length": 3})
             cycInfo.instruction = "BEQ"
-            cycInfo.Type = 'I'
+            cycInfo.Type = 'Branch'
             # Compare the registers and decide if jumping or not
             if register[s] == register[t]:
                 PC += imm*4
@@ -164,7 +164,7 @@ def sim(program, deBug, CpuType):
             #For Multi-Cycle
             cycle.update({"length": 3})
             cycInfo.instruction = "BEQ"
-            cycInfo.Type = 'I'
+            cycInfo.Type = 'Branch'
             # Compare the registers and decide if jumping or not
             if register[s] != register[t]:
                 PC += imm*4
@@ -181,7 +181,7 @@ def sim(program, deBug, CpuType):
             register[t] = register[s] | imm
             #for multi-cycle#
             cycle.update({'length':4})
-            cycInfo.type = "I"
+            cycInfo.Type = "I"
             cycInfo.instruction = "ORI"
 
 
@@ -314,29 +314,17 @@ def sim(program, deBug, CpuType):
 
 
         #-----------------------------------------------------Multi-Cycle---------------------------------------------------------------------------------------------#
-        cycInfo.cycleUpdate()                   #Update cycles based on instruction
+        cycInfo.cycleUpdate()  #Update cycles based on instruction
         if(CpuType == "m" ):
             cycleStop = cycle['count'] + cycle['length']
             cycleStart = cycle['count']
 
             #updateCounters according to cycle length#
             if(cycle['length'] == 3):
-                # counter.updateCounters(cycInfo.c1)
-                # counter.updateCounters(cycInfo.c2)
-                # counter.updateCounters(cycInfo.c3)
                 counter.threeCycles += 1
             elif(cycle['length'] == 4):
-                # counter.updateCounters(cycInfo.c1)
-                # counter.updateCounters(cycInfo.c2)
-                # counter.updateCounters(cycInfo.c3)
-                # counter.updateCounters(cycInfo.c4)
                 counter.fourCycles += 1
             elif(cycle['length'] == 5):
-                # counter.updateCounters(cycInfo.c1)
-                # counter.updateCounters(cycInfo.c2)
-                # counter.updateCounters(cycInfo.c3)
-                # counter.updateCounters(cycInfo.c4)
-                # counter.updateCounters(cycInfo.c5)
                 counter.fiveCycles += 1
 
 
@@ -348,7 +336,7 @@ def sim(program, deBug, CpuType):
                     m_cyclePrint = False
                     userStop == "n"
 
-                #updating Counters#
+                #Updating Counters#
                 if( (cycleStop - cycle.get('count')) == (cycle.get('length') -1 ) ):
                     counter.updateCounters(cycInfo.c1)
                 elif((cycleStop - cycle.get('count')) == (cycle.get('length') -2 ) ):
@@ -363,7 +351,7 @@ def sim(program, deBug, CpuType):
 
                 #MultiCycle-Debug
                 if( (m_cyclePrint == True and type(userStop) == int)  or (userStop == "n" and deBug == "y")  or userStop == 1 or userStop == cycle['count'] ):
-                    print(f"inst = {cycInfo.instruction},     C.L = {cycle.get('length')},    C.S-C.L = {cycleStop - cycle.get('length')},    C.L-1 = {cycle.get('length') -1 },  DIC = {DIC-1}  ")
+                    #print(f"inst = {cycInfo.instruction},     C.L = {cycle.get('length')},    C.S-C.L = {cycleStop - cycle.get('length')},    C.L-1 = {cycle.get('length') -1 },  DIC = {DIC-1}  ")
                     #print(f"Cycle : {cycle.get('count')}\n")
                     if( (cycleStop - cycle.get('count')) == (cycle.get('length') -1 ) ):
                         print(f"\t\tDIC = {DIC-1}")
@@ -412,19 +400,9 @@ def sim(program, deBug, CpuType):
                         counter.printCounters()
                     print('')
                     print("-------------------------------------------------------------------------------------------------------------------")
-                    print('')
+                    #print('')
 
-
-                    # print("-----------------------")
-                    # print(f"cycleCount:{cycle['count']},       cycleStop:{cycleStop},    cycleLength:{cycle.get('length')}      fetch = {format(int(fetch,2), '08x')},  ")
-                    # print("PC: {}, HI: {}, LO:{}".format(PC-4, HI, LO))
-                    # print('Dynamic Instr Count: ', DIC-1)
-                    # print('Registers: $8 - $23')
-                    # printRegisters(oldRegister)
-                    # print('\nMemory contents 0x2000 - 0x2100 ')
-                    # printMemory(oldMem)
-                    # print('')
-
+                #UserInput
                 if( (  (deBug == "y")  and (userStop != "n")  and (m_cyclePrint == False) and (userStop == cycle['count'])  ) or nextCycle == True):
                     userStop = input("Want to skip to certain cycle? type 'n' for NO, or type cycle number you wish to skip to\n")
                     if(userStop != "n"):

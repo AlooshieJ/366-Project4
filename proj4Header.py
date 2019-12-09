@@ -133,7 +133,7 @@ class Cycle:
 class CycleInfo:
     def __init__(self, InstructionName, Type):
         self.instruction = InstructionName
-        self.type = Type
+        self.Type = Type
         self.taken = False
         self.c1 = Cycle('0','0','0','0','00','0','0')
         self.c2 = Cycle('0','0','0','0','11','0','0')
@@ -142,12 +142,12 @@ class CycleInfo:
         self.c5 = Cycle('0','0','0','0','00','0','0')
 
     def cycleUpdate(self):
-        if(self.type == 'R'):				#R-Type
-            self.c3 = Cycle('0','0','0','1','00','0','0')
+        if(self.Type == 'R'):				#R-Type
+            self.c3 = Cycle('1','0','0','1','00','0','0')
             self.c4 = Cycle('0','0','0','0','00','1','1')
 
 
-        elif(self.type == 'I'): #I-Type
+        elif(self.Type == 'I'): #I-Type
             if(self.instruction == "ADDI"):
                 self.c3 = Cycle('0','0','0','1','10','0','0')
                 self.c4 = Cycle('0','0','0','0','00','0','1')
@@ -166,20 +166,17 @@ class CycleInfo:
 
 
 
-        elif(self.type == 'Branch'):		#Branching-Type
-            if(self.taken == True):
+        elif(self.Type == 'Branch'):		#Branching-Type
                 self.c3 = Cycle('0','0','1','1','00','0','0')
-            else: #For NotTaken not sure about this either
-                self.c3 = Cycle('0','0','0','0','00','0','0')
 
 
-        elif(self.type == 'SW'):				#StoreWord (DONE)
+        elif(self.Type == 'SW'):				#StoreWord
             self.c3 = Cycle('0','0','0','1','10','0','0')
             self.c4 = Cycle('0','1','0','0','00','0','0')
 
-        elif(self.type == 'LW'):				#LoadWord
+        elif(self.Type == 'LW'):				#LoadWord
             self.c3 = Cycle('0','0','0','1','10','0','0')
-            self.c4 = Cycle('0','0','0','0','00','0','0') # no need to IorD = 1
+            self.c4 = Cycle('0','0','0','0','00','0','0')
             self.c5 = Cycle('0','0','0','0','00','0','0')
 
 
@@ -267,9 +264,9 @@ class Counter():
 
         if(cycle.MemWrite == "1"):                                                                           #MemWrite
             self.MemWrite.ones += 1
-        elif(cycle.MemToReg == "0"):
+        elif(cycle.MemWrite == "0"):
             self.MemWrite.zeros += 1
-        elif(cycle.MemToReg == "x"):
+        elif(cycle.MemWrite == "x"):
             self.MemWrite.dontCares += 1
 
         if(cycle.Branch == "1"):                                                                           #Branch
@@ -281,9 +278,9 @@ class Counter():
 
         if(cycle.Alusrca == "1"):                                                                           #AlusrcA
             self.Alusrca.ones += 1
-        elif(cycle.Branch == "0"):
+        elif(cycle.Alusrca == "0"):
             self.Alusrca.zeros += 1
-        elif(cycle.Branch == "x"):
+        elif(cycle.Alusrca == "x"):
             self.Alusrca.dontCares += 1
 
 
