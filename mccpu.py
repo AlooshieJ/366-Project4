@@ -176,7 +176,6 @@ class CacheMoney:
 
         # c. a 2-way set-associative cache, block size of 8 Bytes, 4 sets (b=8; N=2; S=4)
         elif self.type == 'SA':
-            print(f"not implemented yet")
 
             self.blk_offset = minBits(self.blk_size - 1)
             total_blocksA = self.total_sets * self.total_ways
@@ -227,12 +226,7 @@ class CacheMoney:
         if self.type == "SA":
             s = 0
             w = 0
-            # for i in range(len(self.set)):
-            #     print(f" set: {bin_digits(i, self.set_Bits)} ")
-            #     for way in self.way:
-            #         print(f" way {c} {way.data} tag:{way.tag} Valid: {way.valid}")
-            #         c += 1
-            #
+
             for set in self.set:
                 print(f" set: {bin_digits(s, self.set_Bits)} ")
                 for way in set:
