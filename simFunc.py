@@ -327,7 +327,7 @@ def sim(program, deBug, CpuType):
             elif(cycle['length'] == 5):
                 counter.fiveCycles += 1
 
-
+            #Loop that does cycle by cycle
             while(cycle['count'] < cycleStop):
                 cycle['count'] += 1
 
