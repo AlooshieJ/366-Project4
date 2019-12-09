@@ -136,7 +136,7 @@ class CacheMoney:
         # self.blks = []
         self.total_ways = total_ways
         self.set_Bits = 0
-        self.total_sets = 0
+        self.total_sets = total_blocks
 
         self.memspace = 0 # ???
         self.type = option
@@ -147,6 +147,7 @@ class CacheMoney:
         self.Miss = 0
         self.Count = 0
         self.lru = fifo(total_blocks) # list size of total blocks, should incorporate a ways check too
+        self.allLRU = [fifo(self.total_ways)] * self.total_sets
 
 
         if self.type == 'DM':
@@ -176,17 +177,19 @@ class CacheMoney:
         elif self.type == 'SA':
             print(f"not implemented yet")
 
-            self.blk_offset = minBits(self.blk_size -1)
-            self.total_sets = int(self.totalblks / self.total_ways)
+            self.blk_offset = minBits(self.blk_size - 1)
+            total_blocksA = self.total_sets * self.total_ways
+            # self.total_sets = int(self.totalblks / self.total_ways)
             self.set_Bits = minBits( self.total_sets  - 1)
             self.tagsize = 32 - (self.set_Bits + self.blk_offset)
-            print(f"Creating {self.total_ways}-way Set Associative Cash| total sets:{self.total_sets} | total blocks: {self.totalblks} | block size: {self.blk_size} B")
+            print(f"Creating {self.total_ways}-way Set Associative Cash| total sets:{self.total_sets} | total blocks: {total_blocksA} | block size: {self.blk_size} B")
 
             print(f"tag size: {self.tagsize} | bits for set: {self.set_Bits} | in blk off: {self.blk_offset}")
 
+        for i in range(self.total_ways):
+            self.way.append(Block(self.blk_size))
+
         for i in range(self.total_sets):
-            for i in range(self.set_Bits):
-                self.way.append(Block(self.blk_size))
             self.set.append(self.way)
 
 
@@ -224,6 +227,10 @@ class CacheMoney:
                 for way in set:
                     print(f" way: {w} {way.data} tag: {way.tag} Valid: {way.valid} ")
                     w += 1
+                print('')
+                print(f"lru for set {s} : ")
+                self.allLRU[s].print()
+
                 print("")
                 s +=1
 
@@ -325,7 +332,6 @@ class CacheMoney:
             keyNums     = wayNum[2]
             match       = 0
             wayCounter  = 0
-# CAN YOU SEE THIS ALI
             print (f" way: {wayNum} ")
             for numWays in self.way:
                 print(f"Checking way: {wayCounter} tag {numWays.tag} ",end = '')
@@ -397,6 +403,7 @@ cacheName = ""
 blocks = 0
 bytesize = 0
 numWays = 1 # by default
+numSets = 0
 print("$$$ Cash $$$")
 print(f" Welcome to DataCache sim ! how would you like your $CACHE$?")
 cacheType = input("(1) for Direct Memory (2) Set-Associative (3) Fully Associative ")
@@ -409,8 +416,9 @@ if cacheType == '1':
 elif cacheType == '2':
     cacheName = 'SA'
     numWays = int(input(" How many Ways?"))
-    blocks = int(input(" How many Sets? "))
+    numSets = int(input(" How many Sets? "))
     bytesize = int(input(" How many Bytes per block (size in B)?"))
+    blocks = numSets
 
 elif cacheType == '3':
     cacheName = 'FA'
