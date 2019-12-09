@@ -1,4 +1,5 @@
 from math import *
+from copy import deepcopy
 import collections
 
 def bin_digits(n, bits):
@@ -147,7 +148,7 @@ class CacheMoney:
         self.Miss = 0
         self.Count = 0
         self.lru = fifo(total_blocks) # list size of total blocks, should incorporate a ways check too
-        self.allLRU = [fifo(self.total_ways)] * self.total_sets
+        self.allLRU = []#[deepcopy(fifo(self.total_ways))] * self.total_sets
 
 
         if self.type == 'DM':
@@ -186,11 +187,21 @@ class CacheMoney:
 
             print(f"tag size: {self.tagsize} | bits for set: {self.set_Bits} | in blk off: {self.blk_offset}")
 
+        # for i in range(self.total_sets):
+        #     for j in range(self.total_ways):
+        #         self.way.append(deepcopy(Block(self.blk_size)))
+        #     self.set.append(self.way)
+
+        # creating sets that have individual ways in them
         for i in range(self.total_ways):
-            self.way.append(Block(self.blk_size))
+           self.way.append(Block(self.blk_size))
 
         for i in range(self.total_sets):
-            self.set.append(self.way)
+           self.set.append(deepcopy(self.way))
+           self.allLRU.append(deepcopy(fifo(self.total_ways)))
+
+        # creating lru for each set
+        #for i in range(self.)
 
 
 
@@ -386,10 +397,53 @@ class CacheMoney:
 
             # for each set, check each way, within that way check the tag and valid , one address has N options
 
-            for i in range(len(self.set)):
-                wayResult = self.allLRU[i].checkWay()
+            wayResult       = self.allLRU[int(set,2)].checkWay()
+            emptyIndex      = wayResult[0]
+            occupiedIndex   = wayResult[1]
+            keyNum          = wayResult[2]
+            wayCounter = 0
+            match = 0
+            print(f"trying set :{set} ")
+            for way in self.set[int(set,2)]:
+                print(f"way : {wayCounter} tag: {way.tag} valid : {way.valid}",end = " ")
+                if way.valid == 0: # miss first miss
+                    print( " --- Empty")
+                    break
 
-                print(wayResult)
+                if way.valid == 1:
+                    print("---Occupied, checking tag...", end = " ")
+                    if way.tag == tag:
+                        print(f"---Hit on tag {way.tag}")
+                        way.valid = 1
+                        self.Hit += 1
+                        self.allLRU[int(set,2)].update(wayCounter,1)
+                        match = 1
+                        break
+                wayCounter  += 1
+
+            if len(emptyIndex) == 1 and match != 1: # use empty
+                print(f"---Miss using empty, way {keyNum[-1:][0]}")
+                self.set[int(set,2)][wayCounter].valid = 1
+                self.set[int(set,2)][wayCounter].tag = tag
+                #self.way[self.allLRU[int(set,2)]._keys[0]].tag = tag
+                #self.way[self.allLRU[int(set,2)]._keys[0]].valid = 1
+                #self.allLRU[int(set,2)].update(keyNum[-1:][0],1)
+                self.allLRU[int(set,2)].update(self.allLRU[int(set,2)]._keys[emptyIndex[0]],1)
+                self.Miss += 1
+            elif len(emptyIndex) == 0 and match != 1:
+                print(f"---Miss due to FULL SET -- LRU replace  way {self.allLRU[int(set,2)]._keys[0]}")
+                self.set[int(set,2)][self.allLRU[int(set,2)]._keys[0]].valid = 1
+                self.set[int(set, 2)][self.allLRU[int(set, 2)]._keys[0]].tag = tag
+                self.allLRU[int(set,2)].update(self.allLRU[int(set,2)]._keys[0],1)
+                self.Miss += 1
+
+            #tag: {self.set[int(set,2)][0].data} valid : {self.set[int(set,2)][0]}\n lruInfo: ")
+            #print(wayResult,self.set,"\n" ,self.allLRU)
+            if debug == 'y':
+                self.allLRU[int(set,2)].print()
+                self.printCache()
+
+                #print(wayResult)
 
 
 
