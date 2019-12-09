@@ -77,7 +77,19 @@ def printMemory(memory):
             print(f"0x{byte3.upper()}{byte2.upper()}{byte1.upper()}{byte0.upper()}", end = "\t")
             k = k + 4
     print('')
+
+def formatFloat(fnum, whole, decimal):
+    fnum = str(fnum)
+    fnum = fnum[:fnum.find('.')+1+decimal]
+    if(len(fnum[:fnum.find('.')]) >= whole):
+        fnum = fnum[fnum.find('.')-whole:]
+        return fnum
+    else:
+        while(len(fnum[:fnum.find('.')]) < whole):
+            fnum = '0'+ fnum
+        return fnum
 #------------------------------------------------------------------------------Classes----------------------------------------------------#
+#state class#
 class State:
 
     def __init__(self, memory, registers, instruction, stateNumber):
@@ -96,68 +108,79 @@ class State:
         print("-----------------------")
         print('')
 
+
 class Cycle:
     def __init__(self, MemToReg, MemWrite, Branch, Alusrca, Alusrcb, Regdst, Regwrite):
-        self.MemtoReg = MemToReg
+        self.MemToReg = MemToReg
         self.MemWrite = MemWrite
         self.Branch = Branch
-        self.AlusrcA = Alusrca
-        self.AlusrcB = Alusrcb
+        self.Alusrca = Alusrca
+        self.Alusrcb = Alusrcb
         self.Regdst =  Regdst
         self.Regwrite = Regwrite
 
 
     def printCycle(self):
-        print(f"MemToReg =  {self.MemtoReg}")
+        print(f"MemToReg =  {self.MemToReg}")
         print(f"MemWrite =  {self.MemWrite}")
         print(f"Branch   =  {self.Branch}")
-        print(f"AlusrcA  =  {self.AlusrcA}")
-        print(f"AlusrcB  =  {self.AlusrcB}")
+        print(f"Alusrca  =  {self.Alusrca}")
+        print(f"Alusrcb  =  {self.Alusrcb}")
         print(f"Regdst   =  {self.Regdst}")
         print(f"Regwrite =  {self.Regwrite}")
 
-    #MemToReg, MemWrite, Branch, AlusrcA, AlusrcB, Regdst, Regwrite#
+
+#(MemToReg, MemWrite, Branch, Alusrca, Alusrcb, Regdst, Regwrite)
 
 class CycleInfo:
     def __init__(self, InstructionName, Type):
         self.instruction = InstructionName
         self.type = Type
         self.taken = False
-        self.c1 = Cycle('0','0','0','0','01','0','0')
+        self.c1 = Cycle('0','0','0','0','00','0','0')
         self.c2 = Cycle('0','0','0','0','11','0','0')
-        self.c3 = Cycle('0','0','0','0','00','0','0')
-        self.c4 = Cycle('0','0','0','0','00','0','0')
-        self.c5 = Cycle('0','0','0','0','00','0','0')
+        self.c3 = Cycle('0','0','0','0','0','0','0')
+        self.c4 = Cycle('0','0','0','0','0','0','0')
+        self.c5 = Cycle('0','0','0','0','0','0','0')
 
     def cycleUpdate(self):
         if(self.type == 'R'):				#R-Type
             self.c3 = Cycle('0','0','0','1','00','0','0')
             self.c4 = Cycle('0','0','0','0','0','1','1')
 
+        # IGNORE FOR NOW #SIGNAL DONE FOR ADDI
+        elif(self.type == 'addi'): # addi, lui, ori, andi
+
+            self.c3 = Cycle('0','0','1','1','10','0','0')
+            self.c4 = Cycle('0','0','0','0','0','0','1')
+        # IGNORE FOR NOW
+
+
+       ## YOU WERE HERE (START) # Need to research the control signals for LUI, OR, ANDI
         elif(self.type == 'I'): #I-Type
             if(self.instruction == "ADDI"):
-                self.c3 = Cycle('0','0','0','1','10','0','0')
-                self.c4 = Cycle('0','0','0','0','00','0','1')
+                self.c3 = Cycle('0','0','0','0','00','0','0')
+                self.c4 = Cycle('0','0','0','0','0','0','0')
 
             elif(self.instruction == "LUI"):
                 self.c3 = Cycle('0','0','0','0','00','0','0')
-                self.c4 = Cycle('0','0','0','0','00','0','0')
+                self.c4 = Cycle('0','0','0','0','0','0','0')
 
             elif(self.instruction == "ORI"):
-                self.c3 = Cycle('0','1','0','0','00','0','0')
-                self.c4 = Cycle('1','0','0','0','00','0','0')
+                self.c3 = Cycle('0','0','0','0','00','0','0')
+                self.c4 = Cycle('0','0','0','0','0','0','0')
 
             elif(self.instruction == "ANDI"):
                 self.c3 = Cycle('0','0','0','0','00','0','0')
-                self.c4 = Cycle('0','0','0','0','00','0','0')
+                self.c4 = Cycle('0','0','0','0','0','0','0')
 
-                                                        #MemToReg, MemWrite, Branch, AlusrcA, AlusrcB, Regdst, Regwrite#
+
 
         elif(self.type == 'Branch'):		#Branching-Type
             if(self.taken == True):
                 self.c3 = Cycle('0','0','1','1','00','0','0')
             else: #For NotTaken not sure about this either
-                self.c3 = Cycle('0','0','1','0','0','0','0')
+                self.c3 = Cycle('0','0','0','0','0','0','0')
 
 
         elif(self.type == 'SW'):				#StoreWord (DONE)
@@ -167,7 +190,9 @@ class CycleInfo:
         elif(self.type == 'LW'):				#LoadWord
             self.c3 = Cycle('0','0','0','1','10','0','0')
             self.c4 = Cycle('0','0','0','0','0','0','0') # no need to IorD = 1
-            self.c5 = Cycle('1','0','0','0','00','0','1')
+            self.c5 = Cycle('0','0','0','0','00','0','0')
+
+
 
 class DoubleBitSignal():
     def __init__(self, bit00, bit01, bit10, bit11, dontCares):
@@ -196,6 +221,105 @@ class Counter():
         self.Regdst = SingleBitSignal(0,0,0) #zeros, ones, dontCares
         self.Regwrite = SingleBitSignal(0,0,0) #zeros, ones, dontCares
 
+
+                 #MemToReg, MemWrite, Branch, Alusrca, Alusrcb, Regdst, Regwrite,
+    def printCounters(self):
+
+        print(f"\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t#-------------Total Cycle Count For-------------#")
+        print(f"\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t3 Cycle = {self.threeCycles:04}")
+        print(f"\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t4 Cycle = {self.fourCycles:04}")
+        print(f"\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t5 Cycle = {self.fiveCycles:04}\n")
+        print(f"\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t#---------Value Distribution of Signals-------------#")
+        print(f"MemToReg:\t\t\t\t\tMemWrite:\t\t\t\t\tBranch:\t\t\t\t\t\t Alusrca:\t\t\t\t\t\tAlusrcb:\t\t\t\t\tRegdst:\t\t\t\t\t\t\tRegwrite:")
+
+        # zeros printout#
+        print(f"0 = {self.MemToReg.zeros:04} - {formatFloat((((self.MemToReg.zeros)/ (self.MemToReg.zeros + self.MemToReg.ones +self.MemToReg.dontCares)) * 100), 3, 1)}%   \t    "  #MemToReg
+              f"0 = {self.MemWrite.zeros:04} - {formatFloat(((self.MemWrite.zeros)/ (self.MemWrite.zeros + self.MemWrite.ones +self.MemWrite.dontCares)) * 100,3,1)}%   \t    " #MemWrite
+              f"0 = {self.Branch.zeros:04} - {formatFloat(((self.Branch.zeros)/ (self.Branch.zeros + self.Branch.ones +self.Branch.dontCares)) * 100,3,1)}%       "              #Branch
+              f"     "
+              f"0 = {self.Alusrca.zeros:04} - {formatFloat(((self.Alusrca.zeros)/ (self.Alusrca.zeros + self.Alusrca.ones +self.Alusrca.dontCares)) * 100,3,1)}%"                  #Alusrca
+              f"   \t\t    00 = {self.Alusrcb.bit00:04} - {formatFloat(((self.Alusrcb.bit00)/ (self.Alusrcb.bit00 + self.Alusrcb.bit01 + self.Alusrcb.bit10 + self.Alusrcb.bit11 + self.Alusrcb.dontCares)) * 100,3,1)}%"  #Alusrcb
+              f"   \t    0 = {self.Regdst.zeros:04} - {formatFloat(((self.Regdst.zeros)/ (self.Regdst.zeros + self.Regdst.ones +self.Regdst.dontCares)) * 100,3,1)}%"                                #Regdst
+              f"   \t\t    0 = {self.Regwrite.zeros:04} - {formatFloat(((self.Regwrite.zeros)/ (self.Regwrite.zeros + self.Regwrite.ones +self.Regwrite.dontCares)) * 100,3,1)}%")                 #Regwrite
+
+        # ones printout#
+        print(f"1 = {self.MemToReg.ones:04} - {formatFloat(((self.MemToReg.ones)/ (self.MemToReg.zeros + self.MemToReg.ones +self.MemToReg.dontCares)) * 100,3,1)}%   \t    "  #MemToReg
+              f"1 = {self.MemWrite.ones:04} - {formatFloat(((self.MemWrite.ones)/ (self.MemWrite.zeros + self.MemWrite.ones +self.MemWrite.dontCares)) * 100, 3, 1)}%   \t    " #MemWrite
+              f"1 = {self.Branch.ones:04} - {formatFloat(((self.Branch.ones)/ (self.Branch.zeros + self.Branch.ones +self.Branch.dontCares)) * 100,3,1)}%       "              #Branch
+              f"     "
+              f"1 = {self.Alusrca.ones:04} - {formatFloat(((self.Alusrca.ones)/ (self.Alusrca.zeros + self.Alusrca.ones +self.Alusrca.dontCares)) * 100,3,1)}%"                  #Alusrca
+              f"   \t\t    01 = {self.Alusrcb.bit01:04} - {formatFloat(((self.Alusrcb.bit01)/ (self.Alusrcb.bit00 + self.Alusrcb.bit01 + self.Alusrcb.bit10 + self.Alusrcb.bit11 + self.Alusrcb.dontCares)) * 100,3,1)}%"  #Alusrcb
+              f"   \t    1 = {self.Regdst.ones:04} - {formatFloat(((self.Regdst.ones)/ (self.Regdst.zeros + self.Regdst.ones +self.Regdst.dontCares)) * 100,3,1)}%"                                #Regdst
+              f"   \t\t    1 = {self.Regwrite.ones:04} - {formatFloat(((self.Regwrite.ones)/ (self.Regwrite.zeros + self.Regwrite.ones +self.Regwrite.dontCares)) * 100,3,1)}%")                 #Regwrite
+
+        #dont cares printout +10 for srcb
+
+        print(f"x = {self.MemToReg.dontCares:04} - {formatFloat(((self.MemToReg.dontCares)/ (self.MemToReg.zeros + self.MemToReg.ones +self.MemToReg.dontCares)) * 100,3,1)}%   \t    "  #MemToReg
+              f"x = {self.MemWrite.dontCares:04} - {formatFloat(((self.MemWrite.dontCares)/ (self.MemWrite.zeros + self.MemWrite.ones +self.MemWrite.dontCares)) * 100,3,1)}%   \t    " #MemWrite
+              f"x = {self.Branch.dontCares:04} - {formatFloat(((self.Branch.dontCares)/ (self.Branch.zeros + self.Branch.ones +self.Branch.dontCares)) * 100,3,1)}%       "              #Branch
+              f"     "
+              f"x = {self.Alusrca.dontCares:04} - {formatFloat(((self.Alusrca.dontCares)/ (self.Alusrca.zeros + self.Alusrca.ones +self.Alusrca.dontCares)) * 100,3,1)}%"                  #Alusrca
+              f"   \t\t    10 = {self.Alusrcb.bit10:04} - {formatFloat(((self.Alusrcb.bit10)/ (self.Alusrcb.bit00 + self.Alusrcb.bit01 + self.Alusrcb.bit10 + self.Alusrcb.bit11 + self.Alusrcb.dontCares)) * 100,3,1)}%"  #Alusrcb
+              f"   \t    x = {self.Regdst.dontCares:04} - {formatFloat(((self.Regdst.dontCares)/ (self.Regdst.zeros + self.Regdst.ones +self.Regdst.dontCares)) * 100,3,1)}%"                                #Regdst
+              f"   \t\t    x = {self.Regwrite.dontCares:04} - {formatFloat(((self.Regwrite.dontCares)/ (self.Regwrite.zeros + self.Regwrite.ones +self.Regwrite.dontCares)) * 100,3,1)}%")                 #Regwrite
+
+        print(f"\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t 3 = {self.Alusrcb.bit11:04} - {formatFloat(((self.Alusrcb.bit11)/ (self.Alusrcb.bit00 + self.Alusrcb.bit01 + self.Alusrcb.bit10 + self.Alusrcb.bit11 + self.Alusrcb.dontCares)) * 100,3,1)}%")  #Alusrcb
+        print(f"\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t x = {self.Alusrcb.dontCares:04} - {formatFloat(((self.Alusrcb.dontCares)/ (self.Alusrcb.bit00 + self.Alusrcb.bit01 + self.Alusrcb.bit10 + self.Alusrcb.bit11 + self.Alusrcb.dontCares)) * 100,3,1)}%")  #Alusrcb
+
+    def updateCounters(self, cycle):
+        if(cycle.MemToReg == "1"):                                                                           #MemToReg
+            self.MemToReg.ones += 1
+        elif(cycle.MemToReg == "0"):
+            self.MemToReg.zeros += 1
+        elif(cycle.MemToReg == "x"):
+            self.MemToReg.dontCares += 1
+
+        if(cycle.MemWrite == "1"):                                                                           #MemWrite
+            self.MemWrite.ones += 1
+        elif(cycle.MemToReg == "0"):
+            self.MemWrite.zeros += 1
+        elif(cycle.MemToReg == "x"):
+            self.MemWrite.dontCares += 1
+
+        if(cycle.Branch == "1"):                                                                           #Branch
+            self.Branch.ones += 1
+        elif(cycle.Branch == "0"):
+            self.Branch.zeros += 1
+        elif(cycle.Branch == "x"):
+            self.Branch.dontCares += 1
+
+        if(cycle.Alusrca == "1"):                                                                           #AlusrcA
+            self.Alusrca.ones += 1
+        elif(cycle.Branch == "0"):
+            self.Alusrca.zeros += 1
+        elif(cycle.Branch == "x"):
+            self.Alusrca.dontCares += 1
+
+
+        if(cycle.Alusrcb ==  "00"):                                                                           #Alusrcb
+            self.Alusrcb.bit00 += 1
+        elif(cycle.Alusrcb == "01"):
+            self.Alusrcb.bit01 += 1
+        elif(cycle.Alusrcb == "10"):
+            self.Alusrcb.bit10 += 1
+        elif(cycle.Alusrcb == "11"):
+            self.Alusrcb.bit11 += 1
+        elif(cycle.Alusrcb == "x"):
+            self.Alusrcb.dontCares += 1
+
+        if(cycle.Regdst == "1"):                                                                           #Regdst
+            self.Regdst.ones += 1
+        elif(cycle.Regdst == "0"):
+            self.Regdst.zeros += 1
+        elif(cycle.Regdst == "x"):
+            self.Regdst.dontCares += 1
+
+        if(cycle.Regwrite == "1"):                                                                           #Regwrite
+            self.Regwrite.ones += 1
+        elif(cycle.Regwrite == "0"):
+            self.Regwrite.zeros += 1
+        elif(cycle.Regwrite == "x"):
+            self.Regwrite.dontCares += 1
 #------------------------SIM---------------#
 def sim(program, deBug, CpuType):
     finished = False      # Is the simulation finished? 
@@ -515,6 +639,12 @@ def sim(program, deBug, CpuType):
         if(CpuType == "m" ) :
             cycleStop = cycle['count'] + cycle['length']
             cycleStart = cycle['count']
+            if(cycle['length'] == 3):
+                counter.threeCycles += 1
+            elif(cycle['length'] == 4):
+                counter.fourCycles += 1
+            elif(cycle['length'] == 5):
+                counter.fiveCycles += 1
 
             while(cycle['count'] < cycleStop):
                 cycle['count'] += 1
@@ -529,18 +659,28 @@ def sim(program, deBug, CpuType):
                     if( (cycleStop - cycle.get('count')) == (cycle.get('length') -1 ) ):
                         print(f"{cycInfo.instruction}'s Cycle 1\n")
                         cycInfo.c1.printCycle()
+                        counter.updateCounters(cycInfo.c1)
+                        counter.printCounters()
                     elif((cycleStop - cycle.get('count')) == (cycle.get('length') -2 ) ):
                         print(f"{cycInfo.instruction}'s Cycle 2\n")
                         cycInfo.c2.printCycle()
+                        counter.updateCounters(cycInfo.c2)
+                        counter.printCounters()
                     elif((cycleStop - cycle.get('count')) == (cycle.get('length') -3 ) ):
                         print(f"{cycInfo.instruction}'s Cycle 3\n")
                         cycInfo.c3.printCycle()
+                        counter.updateCounters(cycInfo.c3)
+                        counter.printCounters()
                     elif((cycleStop - cycle.get('count')) == (cycle.get('length') -4 ) ):
                         print(f"{cycInfo.instruction}'s Cycle 4\n")
                         cycInfo.c4.printCycle()
+                        counter.updateCounters(cycInfo.c4)
+                        counter.printCounters()
                     elif((cycleStop - cycle.get('count')) == (cycle.get('length') -5 ) ):
                         print(f"{cycInfo.instruction}'s Cycle 5\n")
                         cycInfo.c5.printCycle()
+                        counter.updateCounters(cycInfo.c5)
+                        counter.printCounters()
                     print('')
                     print("-------------------------------------------------------------------------------------------------------------------")
                     print('')
@@ -644,6 +784,8 @@ def sim(program, deBug, CpuType):
             outMem.write(("0x" +bit32Mem[j*8+i]))
             outMem.write("\t")
         outMem.write("\n")
+
+    #counter.printCounters()
 
     m.close()
     outMem.close()
