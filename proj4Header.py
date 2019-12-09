@@ -119,13 +119,13 @@ class Cycle:
 
 
     def printCycle(self):
-        print(f"MemToReg =  {self.MemToReg}")
-        print(f"MemWrite =  {self.MemWrite}")
-        print(f"Branch   =  {self.Branch}")
-        print(f"Alusrca  =  {self.Alusrca}")
-        print(f"Alusrcb  =  {self.Alusrcb}")
-        print(f"Regdst   =  {self.Regdst}")
-        print(f"Regwrite =  {self.Regwrite}")
+        print(f"\t MemToReg =  {self.MemToReg}")
+        print(f"\t MemWrite =  {self.MemWrite}")
+        print(f"\t Branch   =  {self.Branch}")
+        print(f"\t Alusrca  =  {self.Alusrca}")
+        print(f"\t Alusrcb  =  {self.Alusrcb}")
+        print(f"\t Regdst   =  {self.Regdst}")
+        print(f"\t Regwrite =  {self.Regwrite}")
 
 
 #(MemToReg, MemWrite, Branch, Alusrca, Alusrcb, Regdst, Regwrite)
@@ -146,19 +146,11 @@ class CycleInfo:
             self.c3 = Cycle('0','0','0','1','00','0','0')
             self.c4 = Cycle('0','0','0','0','00','1','1')
 
-        # IGNORE FOR NOW #SIGNAL DONE FOR ADDI
-        elif(self.type == 'addi'): # addi, lui, ori, andi
 
-            self.c3 = Cycle('0','0','1','1','10','0','0')
-            self.c4 = Cycle('0','0','0','0','00','0','1')
-        # IGNORE FOR NOW
-
-
-       ## YOU WERE HERE (START) # Need to research the control signals for LUI, OR, ANDI
         elif(self.type == 'I'): #I-Type
             if(self.instruction == "ADDI"):
-                self.c3 = Cycle('0','0','0','0','00','0','0')
-                self.c4 = Cycle('0','0','0','0','00','0','0')
+                self.c3 = Cycle('0','0','0','1','10','0','0')
+                self.c4 = Cycle('0','0','0','0','00','0','1')
 
             elif(self.instruction == "LUI"):
                 self.c3 = Cycle('0','0','0','0','00','0','0')
@@ -224,6 +216,7 @@ class Counter():
     def printCounters(self):
 
         print(f"\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t#-------------Total Cycle Count For-------------#")
+        print(f"\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tTotal Cycles = {(self.MemToReg.zeros + self.MemToReg.ones +self.MemToReg.dontCares)}\n")
         print(f"\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t3 Cycle = {self.threeCycles:04}")
         print(f"\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t4 Cycle = {self.fourCycles:04}")
         print(f"\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t5 Cycle = {self.fiveCycles:04}\n")
