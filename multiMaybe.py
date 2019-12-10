@@ -454,17 +454,16 @@ def main():
 
 
     # We SHALL start the simulation!
-    CpuType = input("What kind of MIPS CPU would you like? 'm' for multi-cyle, 'p' for pipelined, 'n' for none\n")
+    CpuType = input("What kind of MIPS CPU would you like? 'm' for multi-cyle, 'p' for pipelined, or 'n' for none\n")
 
 
     if(CpuType == "n"):
         cache_MODE = input(f"Would you like to run $$CacheMoney Sim$$ ? 'y' 'n' ") == 'y'
-        print(type(cache_MODE))
     else:
         cache_MODE = False
 
     if cache_MODE == False:
-        deBug = input("Want to enter debug mode, to step through every step? type y for yes \n")
+        deBug = input("Want to enter debug mode, to step through every step? Type 'y' for yes, or 'n' for no\n")
     else:
         deBug = 'n'
     sim(binaryInstructions, deBug, CpuType,cache_MODE)

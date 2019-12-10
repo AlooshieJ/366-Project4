@@ -466,10 +466,10 @@ def sim(program, deBug, CpuType,cache_mode = False ):
 
                 #UserInput
                 if( (  (deBug == "y")  and (userStop != "n")  and (m_cyclePrint == False) and (userStop == cycle['count'])  ) or nextCycle == True):
-                    userStop = input("Want to skip to certain cycle? type 'n' for NO, or type cycle number you wish to skip to\n")
+                    userStop = input("Want to skip to a certain cycle? Type 'n' for NO, or type the cycle number you wish to skip to\n")
                     if(userStop != "n"):
                         userStop = int(userStop)
-                        multiSkip = input("Want to print along the way? 'y' for yes\n")
+                        multiSkip = input("Want to print along the way? Type 'y' for yes, or 'n' for no\n")
                         nextCycle = False
                         if(multiSkip == "y"):
                             m_cyclePrint = True
@@ -479,7 +479,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
 
 
                 if(userStop == "n" and deBug == "y"):
-                    deBug = input("Next Cycle?\n")
+                    deBug = input("Next Cycle? Type 'y' for yes, or 'n' for no\n")
                     if(deBug == "y"):
                         nextCycle = True
                     else:
@@ -511,9 +511,9 @@ def sim(program, deBug, CpuType,cache_mode = False ):
                 printMemory(mem)
                 print('')
 
-                userInput = input("Want to skip to certain dic? type 'n' for NO, or type dic number you wish to skip to\n")
+                userInput = input("Want to skip to a certain DIC? Type 'n' for NO, or type the DIC number you wish to skip to\n")
                 if(userInput == "n"):
-                    userInput = input("Next Step? type y for yes \n")
+                    userInput = input("Next Step? Type 'y' for yes, or 'n' for no \n")
                     if(userInput == "y"):
                         deBug = "y"
                     else:
@@ -521,7 +521,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
                 else:
                     skip = True
                     skipCount = int(userInput)
-                    printDicInput = input("Want to print along the way? 'y' for yes\n")
+                    printDicInput = input("Want to print along the way? Type 'y' for yes, or 'n' for no\n")
 
         if(DIC == skipCount - 1):
             skip = False
