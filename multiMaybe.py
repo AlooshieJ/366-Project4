@@ -485,10 +485,10 @@ def main():
 
 
     # We SHALL start the simulation!
-    CpuType = input("What kind of MIPS CPU would you like? 'm' for multi-cyle, 'p' for pipelined, 'n' for none\n"
+    CpuType = input("What kind of MIPS CPU would you like? 'm' for multi-cyle, 'p' for pipelined, 'n' for none\n")
 
 
-    if(CpuType == "n"):
+    if CpuType == 'n':
         cache_MODE = input(f"Would you like to run $$CacheMoney Sim$$ ? 'y' 'n' ") == 'y'
         print(type(cache_MODE))
     else:
