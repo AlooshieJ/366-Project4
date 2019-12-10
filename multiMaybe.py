@@ -1,5 +1,6 @@
 from proj4Header import *
 from simFunc import *
+from mccpu import *
 #-----MAIN-----#
 def main():
     validInstructions = []  #list of valid instructions
@@ -10,7 +11,7 @@ def main():
 
     #----opening files----#
     f = open("output.txt","w+")
-    h = open("TestCase24.asm","r")                 # INPUT FILE NAME WITH ASM CODE HERE
+    h = open("B2.asm","r")                 # INPUT FILE NAME WITH ASM CODE HERE
     asm = h.readlines()
 
 
@@ -484,11 +485,20 @@ def main():
 
 
     # We SHALL start the simulation!
-    CpuType = input("What kind of MIPS CPU would you like? 'm' for multi-cyle, 'p' for pipelined, 'n' for none\n")
+    CpuType = input("What kind of MIPS CPU would you like? 'm' for multi-cyle, 'p' for pipelined, 'n' for none\n"
+
+
     if(CpuType == "n"):
-        pass
-    deBug = input("Want to enter debug mode, to step through every step? type y for yes \n")
-    sim(binaryInstructions, deBug, CpuType)
+        cache_MODE = input(f"Would you like to run $$CacheMoney Sim$$ ? 'y' 'n' ") == 'y'
+        print(type(cache_MODE))
+    else:
+        cache_MODE = False
+
+    if cache_MODE == False:
+        deBug = input("Want to enter debug mode, to step through every step? type y for yes \n")
+    else:
+        deBug = 'n'
+    sim(binaryInstructions, deBug, CpuType,cache_MODE)
 
 
 if __name__ == "__main__":

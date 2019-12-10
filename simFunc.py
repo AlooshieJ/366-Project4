@@ -1,6 +1,7 @@
 from proj4Header import *
+from mccpu import *
 #------------------------SIM---------------#
-def sim(program, deBug, CpuType):
+def sim(program, deBug, CpuType,cache_mode = False ):
     finished = False      # Is the simulation finished?
     PC = 0                # Program Counter
     HI = 0
@@ -11,7 +12,43 @@ def sim(program, deBug, CpuType):
     skip = False    #for deBug
     skipCount = 0   #for deBug
     printDicInput = "n"     #for deBug
-    m = open("memAddr.txt","w+") #outPut File for cash
+    cache_created = False
+    #m = open("memAddr.txt","w+") #outPut File for cash
+
+    # ------------------------ For Cache --------------------------#
+    cacheName = ""
+    blocks = 0
+    bytesize = 0
+    numWays = 1 # by default
+    numSets = 0
+
+    if cache_mode == True:
+        if cache_created == False:
+            print("$$$ Cash $$$")
+            print(f" Welcome to DataCache sim ! how would you like your $CACHE$?")
+            cacheType = input("(1) for Direct Memory (2) Set-Associative (3) Fully Associative ")
+            if cacheType == '1':
+                cacheName = 'DM'
+                blocks = int(input(" How many Blocks? "))
+                bytesize = int(input(" How many Bytes per block (size in B)?"))
+                # cache = CacheMoney('DM',blocks,bytesize)
+            elif cacheType == '2':
+                cacheName = 'SA'
+                numWays = int(input(" How many Ways?"))
+                numSets = int(input(" How many Sets? "))
+                bytesize = int(input(" How many Bytes per block (size in B)?"))
+                blocks = numSets
+            elif cacheType == '3':
+                cacheName = 'FA'
+                blocks = int(input(" How many Blocks? "))
+                bytesize = int(input(" How many Bytes per block (size in B)?"))
+
+            cache_debug = input("would you like to debug? y/n") == 'y'
+
+            cache_CORE =CacheMoney(cacheName, blocks,bytesize,numWays,cache_debug) # type of cache , mem? , sets, bytes
+            cache_created = True
+
+
 
     #------------------------ForCycleMode--------------------------#
     cycle = {
@@ -204,7 +241,7 @@ def sim(program, deBug, CpuType):
             offset = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
             offset = offset + register[s]-0x2000
             #Writing to Cache File
-            m.write(f"SW @ dic:, {DIC - 1}, {format((offset + 0x2000), '08x')}  \n")
+            #m.write(f"SW @ dic:, {DIC - 1}, {format((offset + 0x2000), '08x')}  \n")
             #Storing a word to memory
             if (offset % 4) == 0:
                 mem[offset+3] = (register[t] >> 24) & 0x000000ff  # +3
@@ -225,7 +262,7 @@ def sim(program, deBug, CpuType):
             offset = -(65536 - int(fetch[16:],2)) if fetch[16]=='1' else int(fetch[16:],2)
             offset = offset + register[s]-0x2000
             #Writing to Cache File
-            m.write(f"LW @ dic:, {DIC - 1}, {format((offset + 0x2000), '08x')}  \n")
+            #m.write(f"LW @ dic:, {DIC - 1}, {format((offset + 0x2000), '08x')}  \n")
             #Loading a word from memory
             memoffset0 = format((mem[offset+0]), '02x')
             memoffset1 = format((mem[offset+1]), '02x')
@@ -309,14 +346,32 @@ def sim(program, deBug, CpuType):
             print('Not implemented')
 
 
-        bit32Mem = []*0x400
-        for i in range (0,0x400,4):
-            bits = hex((mem[i+3]<<24) + (mem[i+2]<<16) + (mem[i+1]<<8) + (mem[i]))
-            bit32Mem.append(("%08X" % int(bits, 16)))
+        # bit32Mem = []*0x400
+        # for i in range (0,0x400,4):
+        #     bits = hex((mem[i+3]<<24) + (mem[i+2]<<16) + (mem[i+1]<<8) + (mem[i]))
+        #     bit32Mem.append(("%08X" % int(bits, 16)))
 
         DIC += 1
 
         #------------------------------------------------------------Simulation Part Done----------------------------------------------------------------------------------------#
+
+
+
+        #------------------------------------------------------------ Cases sim logic ----------------------------------------------------------------------------------------#
+
+        if cache_mode == True:
+
+            if fetch[0:6] == '100011':
+                cache_CORE.write_cache(offset + 0x2000,mem)
+
+            elif fetch[0:6] == '101011' : # opcode for lw
+                cache_CORE.write_cache(offset + 0x2000,mem)
+                #printMemory(mem)
+            #elif :
+               # cache_CORE.write_cache(offset + 0x2000,mem)
+            else:
+                print("Instruction does not acces Memory")
+
 
 
 
@@ -490,20 +545,25 @@ def sim(program, deBug, CpuType):
     printMemory(mem)
 
 
-    outMem = open('outputMemory.txt', "w+")
-    outMem.write("Address Value(+0)\tValue(+4)\tValue(+8)\tValue(+c)\tValue(+10)\tValue(+14)\tValue(+18)\tValue(1c)\n")
-    for j in range(0,9):   # j is a row of 0x20 addresses in Mars (can be from 0 to 32 - but need at least 9 to show all addresses for project1)
-        outMem.write(hex(j*32+0x2000)+"\t")
-        for i in range(0,8):        # i is the column in MARS such that: address + value(i*4)
-            outMem.write(("0x" +bit32Mem[j*8+i]))
-            outMem.write("\t")
-        outMem.write("\n")
+
+    # outMem = open('outputMemory.txt', "w+")
+    # outMem.write("Address Value(+0)\tValue(+4)\tValue(+8)\tValue(+c)\tValue(+10)\tValue(+14)\tValue(+18)\tValue(1c)\n")
+    # for j in range(0,9):   # j is a row of 0x20 addresses in Mars (can be from 0 to 32 - but need at least 9 to show all addresses for project1)
+    #     outMem.write(hex(j*32+0x2000)+"\t")
+    #     for i in range(0,8):        # i is the column in MARS such that: address + value(i*4)
+    #         outMem.write(("0x" +bit32Mem[j*8+i]))
+    #         outMem.write("\t")
+    #     outMem.write("\n")
     print('')
     if(CpuType == "m" ):
         counter.printCounters()
 
-    m.close()
-    outMem.close()
+
+    if cache_mode == True:
+        cache_CORE.output()
+
+    #m.close()
+    #outMem.close()
 
     # for state in states:
     #     state.printState()

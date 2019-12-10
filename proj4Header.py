@@ -3,7 +3,7 @@ from math import *
 #-----allows raw input------#
 try: input = raw_input
 except NameError: pass
-#--------Extra funcs------#
+#--------Extra Funcs------
 def minBitsSig(dec):
     if(dec == 0 or dec == -1 ):
         numBits = 1
@@ -64,7 +64,7 @@ def printMemory(memory):
     print("\nAddress\t\tValue(+0)\tValue(+4)\tValue(+8)\tValue(+c)\tValue(+10)\tValue(+14)\tValue(+18)\tValue(+1c)", end = "")
     for i in range(0,9):
         print("")
-        address = '0x' + format(a, '08x')
+        address = '0x' + format(a + 0x2000, '08x')
         print(f"{address}\t", end = "")
         a += 32
         for j in range(0,8):
@@ -105,6 +105,7 @@ class State:
         printMemory(self.mem)
         print("-----------------------")
         print('')
+
 
 #Cycle Class#
 class Cycle:
@@ -196,6 +197,7 @@ class SingleBitSignal():
         self.zeros = zeros
         self.ones = ones
         self.dontCares = dontCares
+
 
 #Overall Counters: CycleLengths ,SingleSig, DoubleSig
 class Counter():
