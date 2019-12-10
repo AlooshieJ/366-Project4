@@ -15,7 +15,7 @@ def main():
 
     #----opening files----#
     f = open("output.txt","w+")
-    h = open("B1.asm","r")                 # INPUT FILE NAME WITH ASM CODE HERE
+    h = open("B2.asm","r")                 # INPUT FILE NAME WITH ASM CODE HERE
     asm = h.readlines()
 
 
