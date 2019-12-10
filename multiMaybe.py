@@ -108,7 +108,6 @@ def main():
             rt = format(int(line[0]),'05b')
             binary = str('001001' + str(rs) + str(rt) + str(imm))
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x") + "\n")
 
 
@@ -121,7 +120,6 @@ def main():
             rt = format(int(line[0]),'05b')
             binary = str('001000') + str(rs) + str(rt) + str(imm)
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x") + "\n")
 
 
@@ -133,7 +131,6 @@ def main():
             rt = format(int(line[2]),'05b')
             binary = str('000000') + str(rs) + str(rt) + str(rd) + str('00000100001')
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x") + "\n")
 
 
@@ -145,7 +142,6 @@ def main():
             rt = format(int(line[2]),'05b')
             binary = str('000000') + str(rs) + str(rt) + str(rd) + str('00000100000')
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x") + "\n")
 
         elif(line[0:3] == "sub"): # SUB
@@ -156,7 +152,6 @@ def main():
             rt = format(int(line[2]),'05b')
             binary = str('000000') + str(rs) + str(rt) + str(rd) + str('00000100010')
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x") + "\n")
 
         elif(line[0:4] == "fold"): # FOLD
@@ -167,7 +162,6 @@ def main():
             rt = format(int(line[2]),'05b')
             binary = str('000000') + str(rs) + str(rt) + str(rd) + str('00000011111')
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x") + "\n")
 
 
@@ -178,7 +172,6 @@ def main():
             rt = format(int(line[1]),'05b')
             binary = str('000000') + str(rs) + str(rt) + str('0000000000011001')
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x") + "\n")
 
 
@@ -190,7 +183,6 @@ def main():
             rt = format(int(line[1]),'05b')
             binary = str('000000') + str(rs) + str(rt) + str('0000000000011000')
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x") + "\n")
 
 
@@ -203,7 +195,6 @@ def main():
             rt = format(int(line[2]),'05b')
             binary = str('000000') + str(rs) + str(rt) + str(rd) + str('00000101011')
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x")  + "\n")
 
 
@@ -216,7 +207,6 @@ def main():
             rt = format(int(line[2]),'05b')
             binary = str('000000') + str(rs) + str(rt) + str(rd) + str('00000101010')
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x")  + "\n")
 
 
@@ -229,7 +219,6 @@ def main():
             rt = format(int(line[0]),'05b')
             binary = str('00000000000') + str(rs) + str(rt) + str(imm) + str('000010')
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x")+ "\n")
 
         elif(line[0:3] == "sll"): # SLL
@@ -240,7 +229,6 @@ def main():
             rt = format(int(line[0]),'05b')
             binary = str('00000000000') + str(rs) + str(rt) + str(imm) + str('000000')
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x")+ "\n")
 
 
@@ -255,7 +243,6 @@ def main():
             rt = format(int(line[0]),'05b')
             binary = str('101011') + str(rs) + str(rt) + str(imm)
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x")+ "\n")
 
 
@@ -270,7 +257,6 @@ def main():
             rt = format(int(line[0]),'05b')
             binary = str('100011') + str(rs) + str(rt) + str(imm)
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x")  + "\n")
 
 
@@ -286,7 +272,6 @@ def main():
             rt = format(int(line[0]),'05b')
             binary = str('100000') + str(rs) + str(rt) + str(imm)
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x")  + "\n")
 
 
@@ -301,7 +286,6 @@ def main():
             rt = format(int(line[0]),'05b')
             binary = str('101000') + str(rs) + str(rt) + str(imm)
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x")+ "\n")
 
 
@@ -315,7 +299,6 @@ def main():
             rt = format(int(line[0]),'05b')
             binary = str('100000') + str(rs) + str(rt) + str(imm)
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x")  + "\n")
 
 
@@ -324,7 +307,6 @@ def main():
             rd = format(int(line), '05b')
             binary = str("0000000000000000") + str(rd) + str("00000010000")
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x") + "\n")
 
 
@@ -334,7 +316,6 @@ def main():
             rd = format(int(line), '05b')
             binary = str("0000000000000000") + str(rd) + str("00000010010")
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x") + "\n")
 
 
@@ -346,7 +327,6 @@ def main():
             rt = format(int(line[2]),'05b')
             binary = str("000000") + str(rs) + str(rt) + str(rd) +str("00000100110")
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x")  + "\n")
 
 
@@ -357,7 +337,6 @@ def main():
             imm = format(int(line[1]),'016b') if (int(line[1]) > 0) else format(65536 + int(line[1]),'016b')
             binary = str('001111') + str('00000') + str(rt) + str(imm)
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x")  + "\n")
 
 
@@ -370,7 +349,6 @@ def main():
             rt = format(int(line[0]),'05b')
             binary = str('001101') + str(rs) + str(rt) + str(imm)
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x") + "\n")
 
 
@@ -382,7 +360,6 @@ def main():
             rt = format(int(line[0]),'05b')
             binary = str('001100') + str(rs) + str(rt) + str(imm)
             binaryInstructions[i * 4] = binary
-            #f.write(binary + "\n")
             f.write("0x" + format(int(binary,2), "08x")  + "\n")
 
 
@@ -395,7 +372,6 @@ def main():
             if (line[2].isdigit()):  # First,test to see if it's a label or a integer
                 binary = str('000101') + str(rs) + str(rt) + str(format(int(line[2]), '016b'))
                 binaryInstructions[i * 4] = binary
-                #f.write(binary + "\n")
                 f.write("0x" + format(int(binary,2), "08x")  + "\n")
 
 
@@ -407,13 +383,11 @@ def main():
                         if(jumpDistance < 0):
                             binary = str('000101') + str(rs) + str(rt) + str(format(jumpDistance + (2**16), '016b'))
                             binaryInstructions[i * 4] = binary
-                            #f.write(binary + "\n")
                             f.write("0x" + format(int(binary,2), "08x") + "\n")
 
                         else:
                             binary = str('000101') + str(rs) + str(rt) + str(format(jumpDistance, '016b'))
                             binaryInstructions[i * 4] = binary
-                            #f.write(binary + "\n")
                             f.write("0x" + format(int(binary,2), "08x")  + "\n")
 
 
@@ -426,7 +400,6 @@ def main():
             if (line[2].isdigit()):  # First,test to see if it's a label or a integer
                 binary = str('000100') + str(rs) + str(rt) + str(format(int(line[2]), '016b'))
                 binaryInstructions[i * 4] = binary
-                #f.write(binary + "\n")
                 f.write("0x" + format(int(binary,2), "08x")  + "\n")
 
 
@@ -438,13 +411,11 @@ def main():
                         if(jumpDistance < 0):
                             binary = str('000100') + str(rs) + str(rt) + str(format(jumpDistance + (2**16), '016b'))
                             binaryInstructions[i * 4] = binary
-                            #f.write(binary + "\n")
                             f.write("0x" + format(int(binary,2), "08x") + "\n")
 
                         else:
                             binary = str('000100') + str(rs) + str(rt) + str(format(jumpDistance, '016b'))
                             binaryInstructions[i * 4] = binary
-                            #f.write(binary + "\n")
                             f.write("0x" + format(int(binary,2), "08x")  + "\n")
 
 
@@ -463,7 +434,6 @@ def main():
             if(line[0].isdigit()): # First,test to see if it's a label or a integer
                 binary = str('000010') + str(format(int(line[0]),'026b'))
                 binaryInstructions[i * 4] = binary
-                #f.write(binary + "\n")
                 f.write("0x" + format(int(binary,2), "08x")  + "\n")
 
 
@@ -472,7 +442,6 @@ def main():
                     if(labelName[j] == line[0]):
                         binary = str('000010') + str(format(int(labelIndex[j]),'026b'))
                         binaryInstructions[i * 4] = binary
-                        #f.write(binary + "\n")
                         f.write("0x" + format(int(binary,2), "08x")  + "\n")
 
         i += 1
@@ -485,7 +454,7 @@ def main():
 
 
     # We SHALL start the simulation!
-    CpuType = input("What kind of MIPS CPU would you like? 'm' for multi-cyle, 'p' for pipelined, 'n' for none\n"
+    CpuType = input("What kind of MIPS CPU would you like? 'm' for multi-cyle, 'p' for pipelined, 'n' for none\n")
 
 
     if(CpuType == "n"):
