@@ -1,7 +1,5 @@
 from math import *
-from copy import deepcopy
 import collections
-from proj4Header import printMemory
 
 def bin_digits(n, bits):
     s = bin(n & int("1"*bits, 2))[2:]
@@ -77,13 +75,13 @@ class fifo:
         while key < self.capacity:
             keyIndex = self._keys.index(key)
             keyNum.append(key)
-            print(f"checking way: {key}", end=" ")
+            #print(f"checking way: {key}", end=" ")
             if self._values[keyIndex] == 0: # empty
                 empty.append(keyIndex)
-                print(f"---Empty")
+                #print(f"---Empty")
                 break
             else:   # occupied
-                print(f"---Occupied")
+                #print(f"---Occupied")
                 occupied.append(keyIndex)
 
             key += 1
@@ -110,17 +108,11 @@ class Block:
 
    # def write_to_block(self,Memory):
 
-    def write_to_blk(self, start, end,Memory):
-        i = 0
-        end = int(end,2) - 0x2000
-        start = int(start,2) - 0x2000
-        while end >= start:
-            self.data[i] = format( Memory[end], '02X')
-            end -= 1
-            i += 1
-        # for i in range( self.size):
-        #
-        #    self.data[i] =  Memory[ int(start,2) - 0x2000 + i]
+    def write_to_blk(self, start, end):
+
+        for i in range( self.size):
+
+           self.data[i] =  Memory[ int(start,2) - 0x2000 + i]
 
     def read_byte(self,offset):
 
@@ -136,7 +128,7 @@ class Block:
 
 class CacheMoney:
 
-    def __init__(self, option,total_blocks,bytes,total_ways = 1,debug=False):
+    def __init__(self, option,total_blocks,bytes,total_ways = 1):
 
         self.blk_size = bytes # input
         self.totalblks = total_blocks
@@ -144,8 +136,7 @@ class CacheMoney:
         # self.blks = []
         self.total_ways = total_ways
         self.set_Bits = 0
-        self.total_sets = total_blocks
-        self._debug = debug
+        self.total_sets = 0
 
         self.memspace = 0 # ???
         self.type = option
@@ -156,7 +147,6 @@ class CacheMoney:
         self.Miss = 0
         self.Count = 0
         self.lru = fifo(total_blocks) # list size of total blocks, should incorporate a ways check too
-        self.allLRU = []#[deepcopy(fifo(self.total_ways))] * self.total_sets
 
 
         if self.type == 'DM':
@@ -184,31 +174,20 @@ class CacheMoney:
 
         # c. a 2-way set-associative cache, block size of 8 Bytes, 4 sets (b=8; N=2; S=4)
         elif self.type == 'SA':
+            print(f"not implemented yet")
 
-            self.blk_offset = minBits(self.blk_size - 1)
-            total_blocksA = self.total_sets * self.total_ways
-            # self.total_sets = int(self.totalblks / self.total_ways)
+            self.blk_offset = minBits(self.blk_size -1)
+            self.total_sets = int(self.totalblks / self.total_ways)
             self.set_Bits = minBits( self.total_sets  - 1)
             self.tagsize = 32 - (self.set_Bits + self.blk_offset)
-            print(f"Creating {self.total_ways}-way Set Associative Cash| total sets:{self.total_sets} | total blocks: {total_blocksA} | block size: {self.blk_size} B")
+            print(f"Creating {self.total_ways}-way Set Associative Cash| total sets:{self.total_sets} | total blocks: {self.totalblks} | block size: {self.blk_size} B")
 
             print(f"tag size: {self.tagsize} | bits for set: {self.set_Bits} | in blk off: {self.blk_offset}")
 
-        # for i in range(self.total_sets):
-        #     for j in range(self.total_ways):
-        #         self.way.append(deepcopy(Block(self.blk_size)))
-        #     self.set.append(self.way)
-
-        # creating sets that have individual ways in them
-        for i in range(self.total_ways):
-           self.way.append(Block(self.blk_size))
-
         for i in range(self.total_sets):
-           self.set.append(deepcopy(self.way))
-           self.allLRU.append(deepcopy(fifo(self.total_ways)))
-
-        # creating lru for each set
-        #for i in range(self.)
+            for i in range(self.set_Bits):
+                self.way.append(Block(self.blk_size))
+            self.set.append(self.way)
 
 
 
@@ -226,24 +205,26 @@ class CacheMoney:
         if self.type == "FA":
 
             for i in range(self.totalblks):  # these are sets..
-                print(f"way: {i} {self.way[i].data}", end=" ")
-                print(f"tag : {self.way[i].tag} Valid: {self.way[i].valid} ")
+                print(f"way: {i} {cache.way[i].data}", end=" ")
+                print(f"tag : {cache.way[i].tag} Valid: {cache.way[i].valid} ")
             #for i in range(self.totalblks):
             #    self.lru.index[i] = 0
 
         if self.type == "SA":
             s = 0
             w = 0
-
+            # for i in range(len(self.set)):
+            #     print(f" set: {bin_digits(i, self.set_Bits)} ")
+            #     for way in self.way:
+            #         print(f" way {c} {way.data} tag:{way.tag} Valid: {way.valid}")
+            #         c += 1
+            #
             for set in self.set:
                 print(f" set: {bin_digits(s, self.set_Bits)} ")
                 for way in set:
                     print(f" way: {w} {way.data} tag: {way.tag} Valid: {way.valid} ")
                     w += 1
-                print('')
-                print(f"lru for set {s} : ") # lru printing for each set
-                self.allLRU[s].print()
-
+                print("")
                 s +=1
 
 
@@ -268,6 +249,7 @@ class CacheMoney:
             off = addr[-self.blk_offset:]
             strtBlk = addr[:self.tagsize + self.setNum] # memory range
             endBlk =  strtBlk[:]
+            #self.leastUsed = int(set,2)
             for i in range(self.blk_offset):
                 strtBlk += '0'
                 endBlk += '1'
@@ -282,13 +264,14 @@ class CacheMoney:
                 self.set[int(set, 2)].tag = tag
                 self.set[int(set, 2)].valid = 1
                 print(f"loading blk fom Mem  [0x{format(int(strtBlk,2),'04x')}] - M[0x{format(int(endBlk,2),'04x')}] into set {set}  ")
-                self.set[int(set,2)].write_to_blk(strtBlk,endBlk,Memory)
+                self.set[int(set,2)].write_to_blk(strtBlk,endBlk)
             else: # valid bit, check tag
                 if self.set[int(set,2)].tag == tag: # valid tag , hit load write blk
-
                     self.Hit += 1
                     print(f"Hit with addr: {hex(int(addr,2))}\nin blk info for set {set}: tag : {self.set[int(set,2)].tag} Valid : {self.set[int(set,2)].valid}")
                     print(f"No update to cache, loading from blk ")
+
+                    ##ADD CACHE ACCESS
 
 
                 else: # not the same tag , overwite set
@@ -299,11 +282,10 @@ class CacheMoney:
                     print(f"loading blk fom Mem  [0x{format(int(strtBlk, 2), '04x')}] - M[0x{format(int(endBlk, 2), '04x')}] into set {set}  ")
 
                     # add swap with memory
-                    self.set[int(set, 2)].write_to_blk(strtBlk, endBlk, Memory)
-                    self.set[int(set, 2)].tag = tag
-                    self.set[int(set, 2)].valid = 1
 
-            print(f"updated blk | set: {set}  tag  : {self.set[int(set,2)].tag} valid: {self.set[int(set,2)].valid}")
+                    self.set[int(set, 2)].tag = tag
+
+            print(f"updated blk | set: {set}  tag  : {self.set[i].tag} valid: {self.set[i].valid}")
             print("")
 
 
@@ -322,6 +304,20 @@ class CacheMoney:
                 endBlk += '1'
 
             print(f"({self.Count}) addr: {hex(int(addr,2))} \ntag: {tag}  off: {off} ")
+           # print(f"M  [0x{format(int(strtBlk, 2), '04x')}] - M[0x{format(int(endBlk, 2), '04x')}] into way [ ]  ")
+            """"
+            # for each way - > loop through lru , check for empty, if full check tag of last used
+            # check valid
+                if valid , then check tag
+                    if tag match 
+                        hit , update lru
+                        
+                    else miss 
+                
+                
+                if not valid, then empty , load into block instant miss, update lru
+            #
+            """
 
             wayNum = self.lru.checkWay() # returns index of key to empty way , and list of occupied ways , keysNumber
             emptyIndex  = wayNum[0]
@@ -329,12 +325,12 @@ class CacheMoney:
             keyNums     = wayNum[2]
             match       = 0
             wayCounter  = 0
+# CAN YOU SEE THIS ALI
             print (f" way: {wayNum} ")
             for numWays in self.way:
                 print(f"Checking way: {wayCounter} tag {numWays.tag} ",end = '')
                 if numWays.valid == 0:
                     print('---Empty')
-                    break
                 if numWays.valid == 1:
                     print('---Occupied')
                     if numWays.tag == tag: # check tag
@@ -348,26 +344,21 @@ class CacheMoney:
 
             if len(emptyIndex) == 1 and match != 1: # use empty
                 print(f"---MISS using empty , way {keyNums[-1:][0]}")
-                self.way[keyNums[-1:][0]].tag = tag
-                self.way[keyNums[-1:][0]].valid = 1
+                self.way[self.lru._keys[emptyIndex[0]]].tag = tag
+                self.way[self.lru._keys[emptyIndex[0]]].valid = 1
                 self.lru.update(self.lru._keys[emptyIndex[0]],1)
                 self.Miss += 1
-
                 #have to print which memory access ...
-                print(f"loading blk fom Mem  [0x{format(int(strtBlk, 2), '04x')}] - M[0x{format(int(endBlk, 2), '04x')}] ")
-                self.way[keyNums[-1:][0]].write_to_blk(strtBlk, endBlk, Memory)
-
             elif len(emptyIndex) == 0 and match != 1: # if no empty check lru, update lru
                 print(f"Miss due to FULL SET --- LRU replace way {self.lru._keys[0]}")
                 self.way[self.lru._keys[0]].tag = tag
                 self.way[self.lru._keys[0]].valid = 1
                 self.lru.update(self.lru._keys[0],1)
                 self.Miss += 1
-                # have to print which memory access ...
 
-                print(f"loading blk fom Mem  [0x{format(int(strtBlk, 2), '04x')}] - M[0x{format(int(endBlk, 2), '04x')}] ")
-                self.way[self.lru._keys[0]].write_to_blk(strtBlk, endBlk, Memory)
-
+            if debug == 'y':
+                self.printCache()
+            #self.lru.print()
 
         elif self.type == 'SA':
             self.Count += 1
@@ -378,80 +369,14 @@ class CacheMoney:
 
             set = addr[-self.set_Bits - self.blk_offset: -self.blk_offset]
             off = addr[-self.blk_offset:]
-            strtBlk = addr[:self.tagsize + self.set_Bits]  # memory range
+            strtBlk = addr[:self.tagsize + self.setNum]  # memory range
             endBlk = strtBlk[:]
-            print(f" {addr}\n strs {strtBlk}, {len(strtBlk)} end: {endBlk} ,{len(endBlk)}")
             # self.leastUsed = int(set,2)
-            for i in range(self.blk_offset  ):
+            for i in range(self.blk_offset):
                 strtBlk += '0'
                 endBlk += '1'
-            print(f" strs {strtBlk}, {len(strtBlk)} end: {endBlk} ,{len(endBlk)}")
-
 
             print(f"({self.Count}) addr: {hex(int(addr,2))} \ntag: {tag} set: {set} off: {off} ")
-
-
-            # for each set, check each way, within that way check the tag and valid , one address has N options
-
-            wayResult       = self.allLRU[int(set,2)].checkWay()
-            emptyIndex      = wayResult[0]
-            occupiedIndex   = wayResult[1]
-            keyNum          = wayResult[2]
-            wayCounter = 0
-            match = 0
-            print(f"trying set :{set} ")
-            for way in self.set[int(set,2)]:
-                print(f"way : {wayCounter} tag: {way.tag} valid : {way.valid}",end = " ")
-                if way.valid == 0: # miss first miss
-                    print( " --- Empty")
-                    break
-
-                if way.valid == 1:
-                    print("---Occupied, checking tag...")
-                    if way.tag == tag:
-                        print(f"---Hit on tag {way.tag}")
-                        way.valid = 1
-                        self.Hit += 1
-                        self.allLRU[int(set,2)].update(wayCounter,1)
-                        match = 1
-                        break
-                wayCounter  += 1
-
-            if len(emptyIndex) == 1 and match != 1: # use empty
-                print(f"---Miss using empty, way {keyNum[-1:][0]}")
-                print(f"loading blk fom Mem  [0x{format(int(strtBlk, 2), '04x')}] - M[0x{format(int(endBlk, 2), '04x')}] ")
-
-                self.set[int(set,2)][wayCounter].valid = 1
-                self.set[int(set,2)][wayCounter].tag = tag
-
-                self.set[int(set, 2)][wayCounter].write_to_blk(strtBlk,endBlk,Memory)
-                self.allLRU[int(set,2)].update(self.allLRU[int(set,2)]._keys[emptyIndex[0]],1)
-                self.Miss += 1
-
-            elif len(emptyIndex) == 0 and match != 1:
-                print(f"---Miss due to FULL SET -- LRU replace  way {self.allLRU[int(set,2)]._keys[0]}")
-                print(f"loading blk fom Mem  [0x{format(int(strtBlk, 2), '04x')}] - M[0x{format(int(endBlk, 2), '04x')}] ")
-
-
-                self.set[int(set,2)][self.allLRU[int(set,2)]._keys[0]].valid = 1
-                self.set[int(set, 2)][self.allLRU[int(set, 2)]._keys[0]].tag = tag
-                self.allLRU[int(set,2)].update(self.allLRU[int(set,2)]._keys[0],1)
-                self.set[int(set, 2)][self.allLRU[int(set,2)]._keys[0]].write_to_blk(strtBlk,endBlk,Memory)
-
-                self.Miss += 1
-
-            #tag: {self.set[int(set,2)][0].data} valid : {self.set[int(set,2)][0]}\n lruInfo: ")
-            #print(wayResult,self.set,"\n" ,self.allLRU)
-            self.allLRU[int(set, 2)].print()
-        self.printCache()
-
-        if self._debug == True:
-            printMemory(Memory)
-
-            self._debug = input (" Keep debugging?  'y' /'n'   ") == 'y'
-
-
-
 
 
     def output(self):
@@ -466,62 +391,61 @@ class CacheMoney:
 # d. a 4-way set-associative cache, block size of 8 Bytes, 2 sets (b=8; N=4; S=2)
 
 
+
+Memory = [ ] # each index is a byte
+cacheName = ""
+blocks = 0
+bytesize = 0
+numWays = 1 # by default
+print("-------------------$$$ Cache Simulator $$$----------------------")
+print(f" Welcome to DataCache simulator how would you like your $CACHE$?")
+cacheType = input("(1) Direct Mapping \n(2) Set-Associative\n(3) Fully Associative\n(4) Help")
+
+if cacheType == '1':
+    cacheName = 'DM'
+    blocks = int(input( " How many Blocks? "))
+    bytesize  = int( input( " How many Bytes per block (size in B)?"))
+    #cache = CacheMoney('DM',blocks,bytesize)
+elif cacheType == '2':
+    cacheName = 'SA'
+    numWays = int(input(" How many Ways?"))
+    blocks = int(input(" How many Sets? "))
+    bytesize = int(input(" How many Bytes per block (size in B)?"))
+
+elif cacheType == '3':
+    cacheName = 'FA'
+    blocks = int(input(" How many Blocks? "))
+    bytesize = int(input(" How many Bytes per block (size in B)?"))
+
+
+#elif cacheType == 3:
+
+
+debug = input("would you like to debug? y/n")
+
+for i in range (1024):
+    Memory.append(i)
+
+f = open('memAddr.txt',"r")
+addrs = []
+m = []
+for x in f.readlines():
+    addrs.append(x)
+
+for line in addrs:
+    line = line.split(',')
+    m.append(line[2][1:-3])
+#print(m)
+
+cache = CacheMoney(cacheName, blocks,bytesize,numWays) # type of cache , mem? , sets, bytes
+cache.printCache()
 #
-# Memory = [ ] # each index is a byte
-# cacheName = ""
-# blocks = 0
-# bytesize = 0
-# numWays = 1 # by default
-# numSets = 0
-# print("$$$ Cash $$$")
-# print(f" Welcome to DataCache sim ! how would you like your $CACHE$?")
-# cacheType = input("(1) for Direct Memory (2) Set-Associative (3) Fully Associative ")
-#
-# if cacheType == '1':
-#     cacheName = 'DM'
-#     blocks = int(input( " How many Blocks? "))
-#     bytesize  = int( input( " How many Bytes per block (size in B)?"))
-#     #cache = CacheMoney('DM',blocks,bytesize)
-# elif cacheType == '2':
-#     cacheName = 'SA'
-#     numWays = int(input(" How many Ways?"))
-#     numSets = int(input(" How many Sets? "))
-#     bytesize = int(input(" How many Bytes per block (size in B)?"))
-#     blocks = numSets
-#
-# elif cacheType == '3':
-#     cacheName = 'FA'
-#     blocks = int(input(" How many Blocks? "))
-#     bytesize = int(input(" How many Bytes per block (size in B)?"))
-#
-# #elif cacheType == 3:
-#
-#
-# debug = input("would you like to debug? y/n")
-#
-# for i in range (1024):
-#     Memory.append(i)
-#
-# f = open('memAddr.txt',"r")
-# addrs = []
-# m = []
-# for x in f.readlines():
-#     addrs.append(x)
-#
-# for line in addrs:
-#     line = line.split(',')
-#     m.append(line[2][1:-3])
-# #print(m)
-#
-# cache = CacheMoney(cacheName, blocks,bytesize,numWays,debug) # type of cache , mem? , sets, bytes
-# cache.printCache()
-# #
-# for mems in m:
-#     cache.write_cache(int(mems,16))
-#     if debug == 'y':
-#         input(" press enter to step")
-# cache.printCache()
-# cache.output()
+for mems in m:
+    cache.write_cache(int(mems,16))
+    if debug == 'y':
+        input(" press enter to step")
+cache.printCache()
+cache.output()
 
 #printMemory(Memory)
 #print(Memory)
