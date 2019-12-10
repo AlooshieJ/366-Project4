@@ -397,9 +397,9 @@ cacheName = ""
 blocks = 0
 bytesize = 0
 numWays = 1 # by default
-print("$$$ Cash $$$")
-print(f" Welcome to DataCache sim ! how would you like your $CACHE$?")
-cacheType = input("(1) for Direct Memory (2) Set-Associative (3) Fully Associative ")
+print("-------------------$$$ Cache Simulator $$$----------------------")
+print(f" Welcome to DataCache simulator how would you like your $CACHE$?")
+cacheType = input("(1) Direct Mapping \n(2) Set-Associative\n(3) Fully Associative\n(4) Help")
 
 if cacheType == '1':
     cacheName = 'DM'
@@ -416,6 +416,7 @@ elif cacheType == '3':
     cacheName = 'FA'
     blocks = int(input(" How many Blocks? "))
     bytesize = int(input(" How many Bytes per block (size in B)?"))
+
 
 #elif cacheType == 3:
 
