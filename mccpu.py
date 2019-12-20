@@ -210,6 +210,7 @@ class CacheMoney:
         # creating lru for each set
         #for i in range(self.)
 
+        self.printCache()
 
 
 
