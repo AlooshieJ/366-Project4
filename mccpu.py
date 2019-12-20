@@ -209,6 +209,7 @@ class CacheMoney:
 
         # creating lru for each set
         #for i in range(self.)
+        self.printCache()
 
 
 
@@ -261,9 +262,7 @@ class CacheMoney:
             #addr = addr + 0x2000
             addr =  bin_digits(addr,32)
             tag = addr[:self.tagsize]
-
             tag = hex(int(tag,2))
-
             set = addr[-self.setNum - self.blk_offset: -self.blk_offset]
             off = addr[-self.blk_offset:]
             strtBlk = addr[:self.tagsize + self.setNum] # memory range

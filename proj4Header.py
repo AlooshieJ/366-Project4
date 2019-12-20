@@ -86,7 +86,15 @@ def formatFloat(fnum, whole, decimal):
         while(len(fnum[:fnum.find('.')]) < whole):
             fnum = '0'+ fnum
         return fnum
+
+
 #------------------------------------------------------------------------------Classes----------------------------------------------------#
+class Row:
+    def __init__(self, instruction, column):
+        self.instruction = instruction
+        self.column = column[:]
+
+
 #state class#
 class State:
 
@@ -169,7 +177,6 @@ class CycleInfo:
 
         elif(self.Type == 'Branch'):		#Branching-Type
                 self.c3 = Cycle('0','0','1','1','00','0','0')                           #(MemToReg, MemWrite, Branch, Alusrca, Alusrcb, Regdst, Regwrite)
-
 
         elif(self.Type == 'SW'):				#StoreWord
             self.c3 = Cycle('0','0','0','1','10','0','0')
