@@ -1,5 +1,6 @@
 from proj4Header import *
 from mccpu import *
+import xlsxwriter
 #------------------------SIM---------------#
 def sim(program, deBug, CpuType,cache_mode = False ):
     finished = False      # Is the simulation finished?
@@ -176,6 +177,8 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycle.update({"length": 4})
             cycInfo.instruction = "SLL"
             cycInfo.Type = 'R'
+            #ForThePipe
+            #states[DIC].inst = {"instruction":"SLL", "rd":d, "rs":"_",  "rt":int(fetch[11:16],2),  "imm":d}
 
         elif fetch[0:6] == '000100':  #<--------------------------------#    # BEQ
             PC += 4
@@ -346,10 +349,6 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             print('Not implemented')
 
 
-        # bit32Mem = []*0x400
-        # for i in range (0,0x400,4):
-        #     bits = hex((mem[i+3]<<24) + (mem[i+2]<<16) + (mem[i+1]<<8) + (mem[i]))
-        #     bit32Mem.append(("%08X" % int(bits, 16)))
 
         DIC += 1
 
@@ -486,8 +485,6 @@ def sim(program, deBug, CpuType,cache_mode = False ):
                         nextCycle = False
 
 
-
-
         #---------------------------------------------For Regular Debug Mode---------------------------------------------------------------------------------#
         if(printDicInput == "y" and (skip == True) ):
             print("-----------------------")
@@ -533,10 +530,64 @@ def sim(program, deBug, CpuType,cache_mode = False ):
     states.append(currentState)
 
 
+#---------------------------------------------------GIRL YOU GON GET THIS PIPE----------------------------------------------------#
+
+    if(CpuType == 'p'):
+        row = []
+        stalls = 0
+        totalCycles = DIC + 4 + stalls
+        for i in range(DIC):
+            row.append(Row(0,["-"] * totalCycles))
+
+        i = 0 #iterator for whie loop
+        while( i < len(row)):
+            row[i].column[i+0] = 'F'
+            row[i].column[i+1] = 'D'
+            row[i].column[i+2] = 'E'
+            row[i].column[i+3] = 'M'
+            row[i].column[i+4] = 'W'
+            i += 1
 
 
-#---------------------------Final Print Out Ttats---------------------------------------------------------------------#
-    print('***Simulation finished***')
+        for rows in row:
+            print("")
+            for columns in rows.column:
+                    print(columns, end = " ")
+
+
+
+
+
+        pipeOutput = xlsxwriter.Workbook("pipeOutput.xlsx")
+        outSheet =  pipeOutput.add_worksheet()
+
+
+        for x, rows in enumerate(row):
+            print("")
+            for y, columns in enumerate(rows.column):
+                print(f"(x{x}, y{y})")
+                outSheet.write(x, y, columns)
+
+
+
+        pipeOutput.close()
+
+
+        # column = DIC
+        # rows = DIC
+        # pipeLine = [['_'] * column for i in range(rows)]
+        # pipeLine[0][0] = 'F'
+        # pipeLine[0][1] = 'D'
+        # pipeLine[0][2] = 'E'
+        # pipeLine[0][3] = 'M'
+        # pipeLine[0][4] = 'W'
+        # prinPipeLine(pipeLine, 1)
+
+
+
+
+#---------------------------Final Print Out Ttats----------------------------------------------------------------------------#
+    print('\n***Simulation finished***')
     print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
     print('Dynamic Instr Count: ', DIC)
     print('Registers: $8 - $23')
@@ -546,14 +597,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
 
 
 
-    # outMem = open('outputMemory.txt', "w+")
-    # outMem.write("Address Value(+0)\tValue(+4)\tValue(+8)\tValue(+c)\tValue(+10)\tValue(+14)\tValue(+18)\tValue(1c)\n")
-    # for j in range(0,9):   # j is a row of 0x20 addresses in Mars (can be from 0 to 32 - but need at least 9 to show all addresses for project1)
-    #     outMem.write(hex(j*32+0x2000)+"\t")
-    #     for i in range(0,8):        # i is the column in MARS such that: address + value(i*4)
-    #         outMem.write(("0x" +bit32Mem[j*8+i]))
-    #         outMem.write("\t")
-    #     outMem.write("\n")
+
     print('')
     if(CpuType == "m" ):
         counter.printCounters()
@@ -561,9 +605,6 @@ def sim(program, deBug, CpuType,cache_mode = False ):
 
     if cache_mode == True:
         cache_CORE.output()
-
-    #m.close()
-    #outMem.close()
 
     # for state in states:
     #     state.printState()
