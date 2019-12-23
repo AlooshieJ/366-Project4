@@ -90,9 +90,13 @@ def formatFloat(fnum, whole, decimal):
 
 #------------------------------------------------------------------------------Classes----------------------------------------------------#
 class Row:
-    def __init__(self, instruction, column):
-        self.instruction = instruction
+    def __init__(self, instNum, column):
+        self.instNum = instNum
         self.column = column[:]
+
+    def addColumn(self, numColumns):
+        for i in range(numColumns):
+            self.column.append("-")
 
 
 #state class#
@@ -106,7 +110,7 @@ class State:
 
     def printState(self):
         print("-----------------------")
-        print(f"During instruction: 0x{self.inst}'s cycles , State:{self.stateNum}")
+        print(f"State:{self.stateNum}")
         print('Registers: $8 - $23')
         printRegisters(self.reg)
         print('\nMemory contents 0x2000 - 0x2100 ', end = '')

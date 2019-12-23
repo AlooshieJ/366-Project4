@@ -88,6 +88,8 @@ def sim(program, deBug, CpuType,cache_mode = False ):
 
 
 
+
+
         #-----------------------------------------------------------------Begining to simulate instruction-------------------------------------------------------------------#
 
         if fetch[0:6] == '001000': #<--------------------------------#  ADDI
@@ -100,6 +102,9 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycle.update({"length": 4})
             cycInfo.instruction = "ADDI"
             cycInfo.Type = 'I'
+            #For the pipe
+            states[DIC].inst = {"instruction":"Addi", "rd":None, "rs":s,  "rt":t,  "imm":imm}
+
 
 
 
@@ -125,6 +130,8 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycle.update({"length": 4})
             cycInfo.instruction = "ADDU"
             cycInfo.Type = 'R'
+            #ForThePipe
+            states[DIC].inst = {"instruction":"Addu", "rd":d, "rs":int(fetch[6:11],2),  "rt":t,  "imm":None}
 
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000100000':#<--------------------------------# ADD
             PC += 4
@@ -136,6 +143,8 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycle.update({"length": 4})
             cycInfo.instruction = "ADD"
             cycInfo.Type = 'R'
+            #ForThePipe
+            states[DIC].inst = {"instruction":"Add", "rd":d, "rs":s,  "rt":t,  "imm":None}
 
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000100010': #<--------------------------------#  SUB
             PC += 4
@@ -147,7 +156,8 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycle.update({"length": 4})
             cycInfo.instruction = "SUB"
             cycInfo.Type = 'R'
-
+            #ForThePipe
+            states[DIC].inst = {"instruction":"Sub", "rd":d, "rs":s,  "rt":t,  "imm":None}
 
         elif fetch[0:6] == '000000' and fetch[26:32] == '000010':#<--------------------------------#  SRL
             PC += 4
@@ -159,6 +169,8 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycle.update({"length": 4})
             cycInfo.instruction = "SRL"
             cycInfo.Type = 'R'
+            #ForThePipe
+            states[DIC].inst = {"instruction":"SLL", "rd":d, "rs":None,  "rt":int(fetch[11:16],2),  "imm":h}
 
         elif fetch[0:6] == '000000' and fetch[26:32] == '000000':#<--------------------------------#  SLL
             PC += 4
@@ -178,7 +190,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycInfo.instruction = "SLL"
             cycInfo.Type = 'R'
             #ForThePipe
-            #states[DIC].inst = {"instruction":"SLL", "rd":d, "rs":"_",  "rt":int(fetch[11:16],2),  "imm":d}
+            states[DIC].inst = {"instruction":"SLL", "rd":d, "rs":None,  "rt":int(fetch[11:16],2),  "imm":h}
 
         elif fetch[0:6] == '000100':  #<--------------------------------#    # BEQ
             PC += 4
@@ -195,6 +207,9 @@ def sim(program, deBug, CpuType,cache_mode = False ):
                 cycInfo.taken = True
             else:
                 cycInfo.taken = False
+            #For the pipe
+            states[DIC].inst = {"instruction":"Beq", "rd":None, "rs":s,  "rt":t,  "imm":imm}
+
 
         elif fetch[0:6] == '000101':        #<--------------------------------BNE
             PC += 4
@@ -211,6 +226,8 @@ def sim(program, deBug, CpuType,cache_mode = False ):
                 cycInfo.taken = True
             else:
                 cycInfo.taken = False
+            #For the pipe
+            states[DIC].inst = {"instruction":"Bne", "rd":None, "rs":s,  "rt":t,  "imm":imm}
 
 
         elif fetch[0:6] == '001101':      #<--------------------------------# ORI
@@ -223,7 +240,8 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycle.update({'length':4})
             cycInfo.Type = "I"
             cycInfo.instruction = "ORI"
-
+            #For the pipe
+            states[DIC].inst = {"instruction":"Ori", "rd":None, "rs":s,  "rt":t,  "imm":imm}
 
 
         elif fetch[0:6] == '001100':    #<--------------------------------# ANDI
@@ -236,6 +254,8 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycle.update({"length": 4})
             cycInfo.instruction = "ANDI"
             cycInfo.Type = 'I'
+            #For the pipe
+            states[DIC].inst = {"instruction":"Andi", "rd":None, "rs":s,  "rt":t,  "imm":imm}
 
         elif fetch[0:6] == '101011':    #<--------------------------------# SW
             PC += 4
@@ -257,6 +277,8 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycle.update({"length": 4})
             cycInfo.instruction = "SW"
             cycInfo.Type = 'SW'
+            #For the pipe
+            states[DIC].inst = {"instruction":"Sw", "rd":None, "rs":s,  "rt":t,  "imm":'0x'+format(offset+0x2000, "04x")}
 
         elif fetch[0:6] == '100011': #<--------------------------------# LW
             PC += 4
@@ -286,6 +308,8 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycle.update({"length": 5})
             cycInfo.instruction = "LW"
             cycInfo.Type = 'LW'
+            #For the pipe
+            states[DIC].inst = {"instruction":"Lw", "rd":None, "rs":s,  "rt":t,  "imm":'0x'+format(offset+0x2000, "04x")}
 
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000101010':#<--------------------------------#  SLT
             PC += 4
@@ -300,6 +324,8 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycle.update({"length": 4})
             cycInfo.instruction = "SLT"
             cycInfo.Type = 'R'
+            #ForThePipe
+            states[DIC].inst = {"instruction":"Slt", "rd":d, "rs":s,  "rt":t,  "imm":None}
 
         elif fetch[0:6] == '001111': #<--------------------------------#  LUI
             PC += 4
@@ -311,6 +337,8 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycle.update({"length": 4})
             cycInfo.instruction = "LUI"
             cycInfo.Type = 'I'
+            #For the pipe
+            states[DIC].inst = {"instruction":"Lui", "rd":None, "rs":s,  "rt":t,  "imm":imm}
 
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000011001': # MULTU
             PC += 4
@@ -331,7 +359,8 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycle.update({"length": 4})
             cycInfo.instruction = "XOR"
             cycInfo.Type = 'R'
-
+            #ForThePipe
+            states[DIC].inst = {"instruction":"Xor", "rd":d, "rs":s,  "rt":t,  "imm":None}
 
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000010000':#<--------------------------------#  MFHI
             PC += 4
@@ -530,7 +559,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
     states.append(currentState)
 
 
-#---------------------------------------------------GIRL YOU GON GET THIS PIPE----------------------------------------------------#
+#----------------------------------------------------------GIRL YOU GON GET THIS PIPE----------------------------------------------------------------------------------------------#
 
     if(CpuType == 'p'):
         row = []
@@ -539,54 +568,74 @@ def sim(program, deBug, CpuType,cache_mode = False ):
         for i in range(DIC):
             row.append(Row(0,["-"] * totalCycles))
 
-        i = 0 #iterator for whie loop
+
+        i = 0 #iterator for whie loop        #------------------IDEAL PIPELINE
         while( i < len(row)):
             row[i].column[i+0] = 'F'
             row[i].column[i+1] = 'D'
             row[i].column[i+2] = 'E'
             row[i].column[i+3] = 'M'
             row[i].column[i+4] = 'W'
+            row[i].instNum = i
             i += 1
 
 
-        for rows in row:
-            print("")
-            for columns in rows.column:
-                    print(columns, end = " ")
+        # for rows in row:              #Row List printout
+        #     print("")
+        #     for columns in rows.column:
+        #             print(columns, end = " ")
 
-
-
-
-
+        #------------------------------Excel file creation----------------------------------------#
         pipeOutput = xlsxwriter.Workbook("pipeOutput.xlsx")
         outSheet =  pipeOutput.add_worksheet()
 
 
-        for x, rows in enumerate(row):
+        #for state in states:    #----------------------IDEAL + STALLS
+            #print(state.inst)
+        totalCycles += 3
+        for rows in row:
+            rows.addColumn(3)
+
+
+        #-#-#-#-----------------------Writing to Excel File--------------------#-#-#-#
+        outSheet.write(0,0, "     Cycles:")
+        for i in range(totalCycles):
+            outSheet.write(0, i+1, i+1)
+
+
+        for x, rows in enumerate(row):  #-----------------DATA INPUT
             print("")
             for y, columns in enumerate(rows.column):
-                print(f"(x{x}, y{y})")
-                outSheet.write(x, y, columns)
+                #print(f"(x{x+1}, y{y+1})")
+                outSheet.write(x+1, y+1, columns)       #inserting cycle data into excel sheet
+
+
+        for rows in row:   #---------------Adding instruction printout before Fetch
+            #j = 0       #iterator
+            columnIndex = rows.column.index('F')        #returns index where instruction begins to be fetched
+            outString = "N.A.A.T.M"                     #out going string to excel sheet
+            #print(type(states[rows.instNum].inst))
+
+            if(type(states[rows.instNum].inst) == dict):        #cheking if variable is a dict in order to print out instruction
+                outString = ""
+                print()
+
+                for key, value in states[rows.instNum].inst.items():        #adding keys and values to string
+                    outString += f"{key} : {value},   "
+
+                print(f"going into sheet: {outString[:-4]},  cycle:{columnIndex + 1}")
+                outSheet.write(rows.instNum + 1, columnIndex, outString[:-4])           #Writing to excel, removed unnecessary characters at the end
+
+            else:
+                print(outString)
+                outSheet.write(rows.instNum + 1, columnIndex, outString)         #Writing to excel
 
 
 
-        pipeOutput.close()
+        pipeOutput.close()     #----------------------------Closing Excel File
 
 
-        # column = DIC
-        # rows = DIC
-        # pipeLine = [['_'] * column for i in range(rows)]
-        # pipeLine[0][0] = 'F'
-        # pipeLine[0][1] = 'D'
-        # pipeLine[0][2] = 'E'
-        # pipeLine[0][3] = 'M'
-        # pipeLine[0][4] = 'W'
-        # prinPipeLine(pipeLine, 1)
-
-
-
-
-#---------------------------Final Print Out Ttats----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------------------Final Print Out Stats----------------------------------------------------------------------------#
     print('\n***Simulation finished***')
     print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
     print('Dynamic Instr Count: ', DIC)
@@ -606,6 +655,11 @@ def sim(program, deBug, CpuType,cache_mode = False ):
     if cache_mode == True:
         cache_CORE.output()
 
-    # for state in states:
-    #     state.printState()
-    # print(f"length of states: {len(states)}")
+    for state in states:
+        print(f"state:{state.stateNum} ,    inst:{state.inst}")
+        state.printState
+    printMemory(states[210].mem)
+
+
+
+    #print(len(states))
