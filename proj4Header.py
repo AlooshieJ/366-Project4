@@ -1,5 +1,4 @@
 from math import *
-
 #-----allows raw input------#
 try: input = raw_input
 except NameError: pass
@@ -99,7 +98,7 @@ class Row:
             self.column.append("-")
 
 
-#state class#
+#State class#
 class State:
 
     def __init__(self, memory, registers, instruction, stateNumber):

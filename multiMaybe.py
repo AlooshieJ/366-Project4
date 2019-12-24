@@ -19,7 +19,6 @@ def main():
     i = 0
     while(i < len(asm)):
         line = asm[i]
-
         line = line.replace("\n", "")
         line = line.replace("\t", "")
         line = line.replace("$","")
