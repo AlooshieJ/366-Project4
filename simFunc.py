@@ -1,7 +1,7 @@
 from proj4Header import *
 from mccpu import *
 import xlsxwriter
-#------------------------SIM---------------#
+#--------------------------------------------------------------------------------SIM------------------------------------------------------------------------------------------------------------------#
 def sim(program, deBug, CpuType,cache_mode = False ):
     finished = False      # Is the simulation finished?
     PC = 0                # Program Counter
@@ -16,7 +16,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
     cache_created = False
     #m = open("memAddr.txt","w+") #outPut File for cash
 
-    # ------------------------ For Cache --------------------------#
+    # --------------------------------------------------------------------------------------------------- For Cache -----------------------------------------------------------------------------#
     cacheName = ""
     blocks = 0
     bytesize = 0
@@ -51,7 +51,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
 
 
 
-    #------------------------ForCycleMode--------------------------#
+    #------------------------For MultiCycle Mode--------------------------#
     cycle = {
         'count'  : 0,
         'length' : 0
@@ -70,7 +70,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
 
 
 
-    #----------------------------------------------------SIMULATOR LOOP-----------------------------------------------------------------------#
+    #----------------------------------------------------------------------------------------------------------SIMULATOR LOOP--------------------------------------------------------------------------------------------------------------------------#
     while(not(finished)):
         if PC == len(program) :
             finished = True
@@ -90,7 +90,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
 
 
 
-        #-----------------------------------------------------------------Begining to simulate instruction-------------------------------------------------------------------#
+        #--------------------------------------------------------Begining to simulate instruction---------------------------------------------------#
 
         if fetch[0:6] == '001000': #<--------------------------------#  ADDI
             PC += 4
@@ -103,7 +103,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycInfo.instruction = "ADDI"
             cycInfo.Type = 'I'
             #For the pipe
-            states[DIC].inst = {"instruction":"Addi", "rd":None, "rs":s,  "rt":t,  "imm":imm}
+            states[DIC].inst = {"instruction":"Addi", "rd":None, "rs":s,  "rt":t,  "imm":imm,  "type":"I"}
 
 
 
@@ -131,7 +131,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycInfo.instruction = "ADDU"
             cycInfo.Type = 'R'
             #ForThePipe
-            states[DIC].inst = {"instruction":"Addu", "rd":d, "rs":int(fetch[6:11],2),  "rt":int(fetch[11:16],2),  "imm":None}
+            states[DIC].inst = {"instruction":"Addu", "rd":d, "rs":int(fetch[6:11],2),  "rt":int(fetch[11:16],2),  "imm":None,  "type":"R"}
 
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000100000':#<--------------------------------# ADD
             PC += 4
@@ -144,7 +144,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycInfo.instruction = "ADD"
             cycInfo.Type = 'R'
             #ForThePipe
-            states[DIC].inst = {"instruction":"Add", "rd":d, "rs":s,  "rt":t,  "imm":None}
+            states[DIC].inst = {"instruction":"Add", "rd":d, "rs":s,  "rt":t,  "imm":None,  "type":"R"}
 
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000100010': #<--------------------------------#  SUB
             PC += 4
@@ -157,7 +157,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycInfo.instruction = "SUB"
             cycInfo.Type = 'R'
             #ForThePipe
-            states[DIC].inst = {"instruction":"Sub", "rd":d, "rs":s,  "rt":t,  "imm":None}
+            states[DIC].inst = {"instruction":"Sub", "rd":d, "rs":s,  "rt":t,  "imm":None,  "type":"R"}
 
         elif fetch[0:6] == '000000' and fetch[26:32] == '000010':#<--------------------------------#  SRL
             PC += 4
@@ -170,7 +170,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycInfo.instruction = "SRL"
             cycInfo.Type = 'R'
             #ForThePipe
-            states[DIC].inst = {"instruction":"SLL", "rd":d, "rs":None,  "rt":int(fetch[11:16],2),  "imm":h}
+            states[DIC].inst = {"instruction":"Srl", "rd":d, "rs":None,  "rt":int(fetch[11:16],2),  "imm":h,  "type":"R"}
 
         elif fetch[0:6] == '000000' and fetch[26:32] == '000000':#<--------------------------------#  SLL
             PC += 4
@@ -190,7 +190,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycInfo.instruction = "SLL"
             cycInfo.Type = 'R'
             #ForThePipe
-            states[DIC].inst = {"instruction":"SLL", "rd":d, "rs":None,  "rt":int(fetch[11:16],2),  "imm":h}
+            states[DIC].inst = {"instruction":"Sll", "rd":d, "rs":None,  "rt":int(fetch[11:16],2),  "imm":h,  "type":"R"}
 
         elif fetch[0:6] == '000100':  #<--------------------------------#    # BEQ
             PC += 4
@@ -208,7 +208,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             else:
                 cycInfo.taken = False
             #For the pipe
-            states[DIC].inst = {"instruction":"Beq", "rd":None, "rs":s,  "rt":t,  "imm":imm}
+            states[DIC].inst = {"instruction":"Beq", "rd":None, "rs":s,  "rt":t,  "imm":imm,  "type":"I"}
 
 
         elif fetch[0:6] == '000101':        #<--------------------------------BNE
@@ -227,7 +227,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             else:
                 cycInfo.taken = False
             #For the pipe
-            states[DIC].inst = {"instruction":"Bne", "rd":None, "rs":s,  "rt":t,  "imm":imm}
+            states[DIC].inst = {"instruction":"Bne", "rd":None, "rs":s,  "rt":t,  "imm":imm,  "type":"I"}
 
 
         elif fetch[0:6] == '001101':      #<--------------------------------# ORI
@@ -241,7 +241,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycInfo.Type = "I"
             cycInfo.instruction = "ORI"
             #For the pipe
-            states[DIC].inst = {"instruction":"Ori", "rd":None, "rs":s,  "rt":t,  "imm":imm}
+            states[DIC].inst = {"instruction":"Ori", "rd":None, "rs":s,  "rt":t,  "imm":imm,  "type":"I"}
 
 
         elif fetch[0:6] == '001100':    #<--------------------------------# ANDI
@@ -255,7 +255,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycInfo.instruction = "ANDI"
             cycInfo.Type = 'I'
             #For the pipe
-            states[DIC].inst = {"instruction":"Andi", "rd":None, "rs":s,  "rt":t,  "imm":imm}
+            states[DIC].inst = {"instruction":"Andi", "rd":None, "rs":s,  "rt":t,  "imm":imm,  "type":"I"}
 
         elif fetch[0:6] == '101011':    #<--------------------------------# SW
             PC += 4
@@ -278,7 +278,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycInfo.instruction = "SW"
             cycInfo.Type = 'SW'
             #For the pipe
-            states[DIC].inst = {"instruction":"Sw", "rd":None, "rs":s,  "rt":t,  "imm":'0x'+format(offset-register[s]+0x2000, "04x")}
+            states[DIC].inst = {"instruction":"Sw", "rd":None, "rs":s,  "rt":t,  "imm":'0x'+format(offset-register[s]+0x2000, "04x"),  "type":"I"}
 
         elif fetch[0:6] == '100011': #<--------------------------------# LW
             PC += 4
@@ -309,7 +309,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycInfo.instruction = "LW"
             cycInfo.Type = 'LW'
             #For the pipe
-            states[DIC].inst = {"instruction":"Lw", "rd":None, "rs":s,  "rt":t,  "imm":'0x'+format(offset- register[s] +0x2000, "04x")}
+            states[DIC].inst = {"instruction":"Lw", "rd":None, "rs":s,  "rt":t,  "imm":'0x'+format(offset- register[s] +0x2000, "04x"),  "type":"I"}
 
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000101010':#<--------------------------------#  SLT
             PC += 4
@@ -325,7 +325,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycInfo.instruction = "SLT"
             cycInfo.Type = 'R'
             #ForThePipe
-            states[DIC].inst = {"instruction":"Slt", "rd":d, "rs":s,  "rt":t,  "imm":None}
+            states[DIC].inst = {"instruction":"Slt", "rd":d, "rs":s,  "rt":t,  "imm":None,  "type":"R"}
 
         elif fetch[0:6] == '001111': #<--------------------------------#  LUI
             PC += 4
@@ -338,7 +338,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycInfo.instruction = "LUI"
             cycInfo.Type = 'I'
             #For the pipe
-            states[DIC].inst = {"instruction":"Lui", "rd":None, "rs":s,  "rt":t,  "imm":imm}
+            states[DIC].inst = {"instruction":"Lui", "rd":None, "rs":s,  "rt":t,  "imm":imm,  "type":"I"}
 
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000011001': # MULTU
             PC += 4
@@ -360,7 +360,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
             cycInfo.instruction = "XOR"
             cycInfo.Type = 'R'
             #ForThePipe
-            states[DIC].inst = {"instruction":"Xor", "rd":d, "rs":s,  "rt":t,  "imm":None}
+            states[DIC].inst = {"instruction":"Xor", "rd":d, "rs":s,  "rt":t,  "imm":None,  "type":"R"}
 
         elif fetch[0:6] == '000000' and fetch[21:32] == '00000010000':#<--------------------------------#  MFHI
             PC += 4
@@ -381,11 +381,11 @@ def sim(program, deBug, CpuType,cache_mode = False ):
 
         DIC += 1
 
-        #------------------------------------------------------------Simulation Part Done----------------------------------------------------------------------------------------#
+        #------------------------------------------------------------------------------------------------Simulation Part Done-----------------------------------------------------------------------------------------------------------------------------------#
 
 
 
-        #------------------------------------------------------------ Cases sim logic ----------------------------------------------------------------------------------------#
+        #---------------------------------------------------------------------- Cases sim logic ----------------------------------------------------------------------------------------#
 
         if cache_mode == True:
 
@@ -403,7 +403,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
 
 
 
-        #-----------------------------------------------------Multi-Cycle---------------------------------------------------------------------------------------------#
+        #---------------------------------------------------------------------------------------------------------Multi-Cycle------------------------------------------------------------------------------------------------------------------------------------#
         cycInfo.cycleUpdate()  #Update cycles based on instruction
         if(CpuType == "m" ):
             cycleStop = cycle['count'] + cycle['length']
@@ -514,7 +514,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
                         nextCycle = False
 
 
-        #---------------------------------------------For Regular Debug Mode---------------------------------------------------------------------------------#
+        #----------------------------------------------------------------------------------------------------For Regular Debug Mode---------------------------------------------------------------------------------------------------------------------------#
         if(printDicInput == "y" and (skip == True) ):
             print("-----------------------")
             print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
@@ -559,7 +559,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
     states.append(currentState)
 
 
-#-------------------------------------------------------------------GIRL YOU GON GET THIS PIPE----------------------------------------------------------------------------------------------#
+#--------------------------------------------------------------------------------------------------GIRL YOU GON GET THIS PIPE-------------------------------------------------------------------------------------------------------------------------------#
 
     if(CpuType == 'p'):         #Checking if in Pipeline mode
         row = []
@@ -590,8 +590,23 @@ def sim(program, deBug, CpuType,cache_mode = False ):
         outSheet =  pipeOutput.add_worksheet()
 
 
-        # for state in states:    #----------------------ADDING STALLS
-        #     if(state.inst)
+        for state in states:    #---------------------------ADDING STALLS                #LW use,  Computation before branch, branch taken, LW-Branch:2 Stalls
+            if(state.stateNum == len(states)-1):        #breaks if last state- Last state is after last instruction is executed, no attached dictionary for state
+                break
+            print(f"type:{state.inst['type']},   instruction: {state.inst['instruction']}")
+
+            if(state.inst['type'] == 'R'):      #-----checks if instruction i is an R-type
+                if(state.inst['instruction'] == 'Sll' or state.inst['instruction'] == 'Srl'):       #----checking if instruction i is SLL or SRL, no rs, only uses two registers
+                    print(f"rd:{state.inst['rd']},  rt: {state.inst['rt']}")
+
+
+                else:       #------instruction i uses all 3 registers
+                    print(f"rd:{state.inst['rd']},  rs: {state.inst['rs']},  rt: {state.inst['rt']}")
+
+
+            elif(state.inst['type'] == 'I'):
+                print(f"rt:{state.inst['rt']},  rs: {state.inst['rs']}")  #,  imm: {state.inst['imm']}
+            #input()
         # totalCycles += stalls
         # for rows in row:
         #     rows.addColumn(stalls)
@@ -618,8 +633,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
 
             if(type(states[rows.instNum].inst) == dict):        #cheking if variable is a dict in order to print out instruction
                 outString = ""
-                print()
-
+                print("")
                 for key, value in states[rows.instNum].inst.items():        #adding keys and values to string
                     outString += f"{key} : {value},   "
 
@@ -635,7 +649,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
         pipeOutput.close()     #----------------------------Closing Excel File
 
 
-#-----------------------------------------------------------------------------------------Final Print Out Stats----------------------------------------------------------------------------#
+#--------------------------------------------------------------------------------------------------------Final Print Out Stats----------------------------------------------------------------------------------------------------------------------------------#
     print('\n***Simulation finished***')
     print("PC: {}, HI: {}, LO:{}".format(PC, HI, LO))
     print('Dynamic Instr Count: ', DIC)

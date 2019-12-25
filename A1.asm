@@ -21,3 +21,4 @@ skip:
 addi $9, $9, 4
 bne $9, $10, lw_loop
 sw $12, 0x2000($0)
+
