@@ -593,20 +593,19 @@ def sim(program, deBug, CpuType,cache_mode = False ):
         for state in states:    #---------------------------ADDING HAZADS AND STALLS                #LW use,  Computation before branch, branch taken, LW-Branch:2 Stalls
             if(state.stateNum == len(states)-1):        #breaks if last state- Last state is after last instruction is executed, no attached dictionary for state
                 break
-            #print(f"type:{state.inst['type']},   instruction: {state.inst['instruction']},   rd: {state.inst['rd']},   rs: {state.inst['rs']},   rt: {state.inst['rt']},   stateNum: {state.stateNum}")
 
             #-----checks if instruction i+0 is an R-type------#
             if(state.inst['type'] == 'R'):
                 if(state.inst['rs'] == None):   #checks if i+0 is sll/srl b/c they dont have rs
-                    print(f"type:{state.inst['type']},   instruction: {state.inst['instruction']},   rd: {state.inst['rd']},   rt: {state.inst['rt']},   stateNum: {state.stateNum}")
+                    print(f"type:{state.inst['type']},   instruction: {state.inst['instruction']},   rd: {state.inst['rd']},   rt: {state.inst['rt']},   DIC: {state.stateNum}")
                 else:
-                    print(f"type:{state.inst['type']},   instruction: {state.inst['instruction']},   rd: {state.inst['rd']},   rs: {state.inst['rs']},   rt: {state.inst['rt']},   stateNum: {state.stateNum}")
+                    print(f"type:{state.inst['type']},   instruction: {state.inst['instruction']},   rd: {state.inst['rd']},   rs: {state.inst['rs']},   rt: {state.inst['rt']},   DIC: {state.stateNum}")
 
                 #i+1 instruction, making sure not on last instruction
                 if(state.stateNum < len(states)-2):
                     if(state.inst['rd'] == states[state.stateNum + 1].inst['rt'] ): #checking for i+1 RT-Hazard
                         if(states[state.stateNum + 1].inst['type'] == 'I'): #check if i+1 is an I type
-                            #if I type, check if rt is used or updated
+                            #if I type, check if rt is used, not updated
                             if(states[state.stateNum + 1].inst['instruction'] == 'Beq' or states[state.stateNum + 1].inst['instruction'] == 'Bne'  or states[state.stateNum + 1].inst['instruction'] == 'Sw'):  #or states[state.stateNum + 1].inst['instruction'] == 'Lw'
                                 print("RT-HAZARD,   i+1 : I")
                         else:#i+1 is a R type
@@ -619,7 +618,7 @@ def sim(program, deBug, CpuType,cache_mode = False ):
                 if(state.stateNum < len(states)-3):
                     if(state.inst['rd'] == states[state.stateNum + 2].inst['rt'] ): #checking for i+2 RT-Hazard
                         if(states[state.stateNum + 2].inst['type'] == 'I'): #check if i+2 is an I type
-                            #if I type, check if rt is used or updated
+                            #if I type, check if rt is used, not updated
                             if(states[state.stateNum + 2].inst['instruction'] == 'Beq' or states[state.stateNum + 2].inst['instruction'] == 'Bne' or states[state.stateNum + 2].inst['instruction'] == 'Sw'):   # or states[state.stateNum + 2].inst['instruction'] == 'Lw'
                                 print("RT-HAZARD,   i+2 : I")
                         else:#i+2 is a R type, rt always used
@@ -629,12 +628,42 @@ def sim(program, deBug, CpuType,cache_mode = False ):
 
 
 
-            #------------checks if instruction i+0 is an I-type--------------#
+            #------checks if instruction i+0 is an I-type---------#
             elif(state.inst['type'] == 'I'):
-                print(f"type:{state.inst['type']},   instruction: {state.inst['instruction']},   rt: {state.inst['rt']},   rs: {state.inst['rs']},   stateNum: {state.stateNum}")
-                if(state.stateNum < len(states)-2):       #i+1 instruction, making sure not on last instruction
-                    if(state.inst['rt'] == states[state.stateNum + 1].inst['rs'] ): #checking for i+1 RS-Hazard
-                        pass
+                if(state.inst['instruction'] == 'Beq' or state.inst['instruction'] == 'Bne' or state.inst['instruction'] == 'Sw'): #these instructions dont update registers
+                    print(f"type:{state.inst['type']},   instruction: {state.inst['instruction']},   rt: {state.inst['rt']},   rs: {state.inst['rs']},   DIC: {state.stateNum} ------ doesnt update registers")
+
+                #instructions that do update, check for hazards
+                else:
+                    print(f"type:{state.inst['type']},   instruction: {state.inst['instruction']},   rt: {state.inst['rt']},   rs: {state.inst['rs']},   DIC: {state.stateNum}")
+
+                    #i+1 instruction, making sure not on last instruction
+                    if(state.stateNum < len(states)-2):
+                        if(state.inst['rt'] == states[state.stateNum + 1].inst['rt'] ): #checking for i+1 RT-Hazard
+                            if(states[state.stateNum + 1].inst['type'] == 'I'): #check if i+1 is an I type
+                                #if I type, check if rt is used, not updated
+                                if(states[state.stateNum + 1].inst['instruction'] == 'Beq' or states[state.stateNum + 1].inst['instruction'] == 'Bne'  or states[state.stateNum + 1].inst['instruction'] == 'Sw'):  #or states[state.stateNum + 1].inst['instruction'] == 'Lw'
+                                    print("RT-HAZARD,   i+1 : I")
+                            else:#i+1 is a R type
+                                print('RT-HAZARD i+1 : R')
+                        if(state.inst['rt'] == states[state.stateNum + 1].inst['rs'] ): #checking for i+1 RS-Hazard, rs used no matter type
+                            print(f"RS-HAZARD,   i+1:{states[state.stateNum + 1].inst['type']}")
+
+
+                    #i+2 instruction, making sure not on second to last instruction
+                    if(state.stateNum < len(states)-3):
+                        if(state.inst['rt'] == states[state.stateNum + 2].inst['rt'] ): #checking for i+2 RT-Hazard
+                            if(states[state.stateNum + 2].inst['type'] == 'I'): #check if i+2 is an I type
+                                #if I type, check if rt is used, not updated
+                                if(states[state.stateNum + 2].inst['instruction'] == 'Beq' or states[state.stateNum + 2].inst['instruction'] == 'Bne' or states[state.stateNum + 2].inst['instruction'] == 'Sw'):   # or states[state.stateNum + 2].inst['instruction'] == 'Lw'
+                                    print("RT-HAZARD,   i+2 : I")
+                            else:#i+2 is a R type, rt always used
+                                print('RT-HAZARD i+2 : R')
+                        if(state.inst['rt'] == states[state.stateNum + 2].inst['rs'] ): #checking for i+2 RS-Hazard, rs used no matter type
+                            print(f"RS-HAZARD,   i+2:{states[state.stateNum + 2].inst['type']}")
+                # if(state.stateNum < len(states)-2):       #i+1 instruction, making sure not on last instruction
+                #     if(state.inst['rt'] == states[state.stateNum + 1].inst['rs'] ): #checking for i+1 RS-Hazard
+                #         pass
                 #print(f"rt:{state.inst['rt']},  rs: {state.inst['rs']}")  #,  imm: {state.inst['imm']}
                 #if():
            # print('-------------------------------------------------------------------------------------------')
@@ -701,10 +730,10 @@ def sim(program, deBug, CpuType,cache_mode = False ):
         cache_CORE.output()
 
 
-    for state in states:
-        print(f"state:{state.stateNum} ,    inst:{state.inst}")
-        state.printState
-    printMemory(states[210].mem)
+    # for state in states:
+    #     print(f"state:{state.stateNum} ,    inst:{state.inst}")
+    #     state.printState
+    # printMemory(states[210].mem)
 
 
 
