@@ -590,13 +590,14 @@ def sim(program, deBug, CpuType,cache_mode = False ):
         outSheet =  pipeOutput.add_worksheet()
 
 
-        for state in states:    #---------------------------ADDING STALLS                #LW use,  Computation before branch, branch taken, LW-Branch:2 Stalls
+        for state in states:    #---------------------------ADDING HAZADS AND STALLS                #LW use,  Computation before branch, branch taken, LW-Branch:2 Stalls
             if(state.stateNum == len(states)-1):        #breaks if last state- Last state is after last instruction is executed, no attached dictionary for state
                 break
-            print(f"type:{state.inst['type']},   instruction: {state.inst['instruction']},   stateNum: {state.stateNum},   rd: {state.inst['rd']},   rs: {state.inst['rs']},   rt: {state.inst['rt']}")
+            print(f"type:{state.inst['type']},   instruction: {state.inst['instruction']},   rd: {state.inst['rd']},   rs: {state.inst['rs']},   rt: {state.inst['rt']},   stateNum: {state.stateNum}")
+
 
             if(state.inst['type'] == 'R'):      #-----checks if instruction i is an R-type
-                if(state.stateNum < 210):       #making sure not on last instruction
+                if(state.stateNum < len(states)-2):       #i+1 instruction, making sure not on last instruction
                     if(state.inst['rd'] == states[state.stateNum + 1].inst['rs'] ): #checking for i+1 RS-Hazard
                         if(states[state.stateNum + 1].inst['type'] == 'I'): #checking if i+1 is an I type
                             #if I type, check if rs is used or updated
@@ -607,8 +608,26 @@ def sim(program, deBug, CpuType,cache_mode = False ):
                     if(state.inst['rd'] == states[state.stateNum + 1].inst['rt'] ): #checking for i+1 RT-Hazard
                         print(f"RT-HAZARD,   i+1:{states[state.stateNum + 1].inst['type']}")
 
+
+                if(state.stateNum < len(states)-3): #i+2 instruction  , making sure not on second to last instruction       #####################i=R, i+2
+                    if(state.inst['rd'] == states[state.stateNum + 2].inst['rs'] ): #checking for i+2 RS-Hazard
+                        if(states[state.stateNum + 2].inst['type'] == 'I'): #checking if i+2 is an I type
+                            #if I type, check if rs is used or updated
+                            if(states[state.stateNum + 2].inst['instruction'] == 'Beq' or states[state.stateNum + 2].inst['instruction'] == 'Bne' or states[state.stateNum + 2].inst['instruction'] == 'Lw' or states[state.stateNum + 2].inst['instruction'] == 'Sw'):
+                                print("RS-HAZARD,   i+2 : I  and doesn't update rs")
+                        else:#i+2 is a R type
+                            print('RS-HAZARD i+2 : R')
+                    if(state.inst['rd'] == states[state.stateNum + 2].inst['rt'] ): #checking for i+2 RT-Hazard
+                        print(f"RT-HAZARD,   i+2:{states[state.stateNum + 2].inst['type']}")
+
+
+
+        #------------checks if instruction i is an I-type--------------#
             elif(state.inst['type'] == 'I'):
-                print(f"rt:{state.inst['rt']},  rs: {state.inst['rs']}")  #,  imm: {state.inst['imm']}
+                pass
+                #print(f"rt:{state.inst['rt']},  rs: {state.inst['rs']}")  #,  imm: {state.inst['imm']}
+                #if():
+           # print('-------------------------------------------------------------------------------------------')
             #input()
         # totalCycles += stalls
         # for rows in row:
@@ -672,10 +691,10 @@ def sim(program, deBug, CpuType,cache_mode = False ):
         cache_CORE.output()
 
 
-    # for state in states:
-    #     print(f"state:{state.stateNum} ,    inst:{state.inst}")
-    #     state.printState
-    # printMemory(states[210].mem)
+    for state in states:
+        print(f"state:{state.stateNum} ,    inst:{state.inst}")
+        state.printState
+    printMemory(states[210].mem)
 
 
 

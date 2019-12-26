@@ -140,7 +140,6 @@ class Cycle:
         print(f"\t Regwrite =  {self.Regwrite}")
 
 
-
 #CycleInfo Class#
 class CycleInfo:
     def __init__(self, InstructionName, Type):
