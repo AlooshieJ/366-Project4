@@ -593,16 +593,19 @@ def sim(program, deBug, CpuType,cache_mode = False ):
         for state in states:    #---------------------------ADDING STALLS                #LW use,  Computation before branch, branch taken, LW-Branch:2 Stalls
             if(state.stateNum == len(states)-1):        #breaks if last state- Last state is after last instruction is executed, no attached dictionary for state
                 break
-            print(f"type:{state.inst['type']},   instruction: {state.inst['instruction']}")
+            print(f"type:{state.inst['type']},   instruction: {state.inst['instruction']},   stateNum: {state.stateNum},   rd: {state.inst['rd']},   rs: {state.inst['rs']},   rt: {state.inst['rt']}")
 
             if(state.inst['type'] == 'R'):      #-----checks if instruction i is an R-type
-                if(state.inst['instruction'] == 'Sll' or state.inst['instruction'] == 'Srl'):       #----checking if instruction i is SLL or SRL, no rs, only uses two registers
-                    print(f"rd:{state.inst['rd']},  rt: {state.inst['rt']}")
-
-
-                else:       #------instruction i uses all 3 registers
-                    print(f"rd:{state.inst['rd']},  rs: {state.inst['rs']},  rt: {state.inst['rt']}")
-
+                if(state.stateNum < 210):       #making sure not on last instruction
+                    if(state.inst['rd'] == states[state.stateNum + 1].inst['rs'] ): #checking for i+1 RS-Hazard
+                        if(states[state.stateNum + 1].inst['type'] == 'I'): #checking if i+1 is an I type
+                            #if I type, check if rs is used or updated
+                            if(states[state.stateNum + 1].inst['instruction'] == 'Beq' or states[state.stateNum + 1].inst['instruction'] == 'Bne' or states[state.stateNum + 1].inst['instruction'] == 'Lw' or states[state.stateNum + 1].inst['instruction'] == 'Sw'):
+                                print("RS-HAZARD,   i+1 : I  and doesn't update rs")
+                        else:#i+1 is a R type
+                            print('RS-HAZARD i+1 : R')
+                    if(state.inst['rd'] == states[state.stateNum + 1].inst['rt'] ): #checking for i+1 RT-Hazard
+                        print(f"RT-HAZARD,   i+1:{states[state.stateNum + 1].inst['type']}")
 
             elif(state.inst['type'] == 'I'):
                 print(f"rt:{state.inst['rt']},  rs: {state.inst['rs']}")  #,  imm: {state.inst['imm']}
@@ -669,9 +672,9 @@ def sim(program, deBug, CpuType,cache_mode = False ):
         cache_CORE.output()
 
 
-    for state in states:
-        print(f"state:{state.stateNum} ,    inst:{state.inst}")
-        state.printState
+    # for state in states:
+    #     print(f"state:{state.stateNum} ,    inst:{state.inst}")
+    #     state.printState
     # printMemory(states[210].mem)
 
 
